@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from database import db
+import pandas as pd
+from logic.pdf_generator import generar_pdf_reporte
 
 # =============================================================================
 # Módulo de Consultas y Reportes — Cumple exactamente el enunciado del proyecto
@@ -107,10 +109,31 @@ class ReportsWindow:
             finally: conn.close()
         return data
 
-    def _exec_btn(self, ctrl, tree, sql, params_fn):
+    def _exec_btn(self, ctrl, tree, sql, params_fn, title="Reporte"):
+        # Botón Ejecutar (Vista en tabla)
         tk.Button(ctrl, text="▶ Ejecutar", font=("Segoe UI", 9, "bold"),
                   bg="#6f42c1", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
                   command=lambda: self._run(tree, sql, params_fn())).pack(side=tk.RIGHT, padx=6)
+        
+        # Botón PDF (Exportación)
+        tk.Button(ctrl, text="📄 Exportar PDF", font=("Segoe UI", 9),
+                  bg="#28a745", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
+                  command=lambda: self._export_pdf(title, sql, params_fn)).pack(side=tk.RIGHT, padx=6)
+
+    def _export_pdf(self, title, sql, params_fn):
+        """Ejecuta la consulta con Pandas y genera el PDF."""
+        params = params_fn()
+        conn = db.get_connection()
+        if not conn: return
+        try:
+            # Reemplazar placeholders :1, :2... por :idx para pandas si fuera necesario, 
+            # pero oracledb + pandas suelen manejar bien los posicionales.
+            df = pd.read_sql(sql, conn, params=params)
+            generar_pdf_reporte(title, df, self.root)
+        except Exception as e:
+            messagebox.showerror("Error de Datos", f"No se pudieron obtener los datos para el PDF: {e}")
+        finally:
+            conn.close()
 
     # ── CONSULTAS ────────────────────────────────────────────────
     def _build_consultas(self, parent):
@@ -135,7 +158,7 @@ class ReportsWindow:
             )
             ORDER BY j.valor DESC
         """
-        self._exec_btn(ctrl, tree, sql, lambda: ())
+        self._exec_btn(ctrl, tree, sql, lambda: (), "Jugador más costoso por confederación")
 
         # ─ C2: Partidos en un estadio elegido ────────────────────
         ctrl, tree = self._section(frame,
@@ -159,7 +182,8 @@ class ReportsWindow:
             ORDER BY p.fecha
         """
         self._exec_btn(ctrl, tree, sql,
-                       lambda: (cb_est.get().split(" - ")[0],) if cb_est.get() else ())
+                       lambda: (cb_est.get().split(" - ")[0],) if cb_est.get() else (),
+                       "Partidos en Estadio")
 
         # ─ C3: Equipo más costoso por país anfitrión ─────────────
         ctrl, tree = self._section(frame,
@@ -193,7 +217,7 @@ class ReportsWindow:
             )
             ORDER BY pp.pais
         """
-        self._exec_btn(ctrl, tree, sql, lambda: ())
+        self._exec_btn(ctrl, tree, sql, lambda: (), "Equipo más costoso por país")
 
         # ─ C4: Cantidad de jugadores sub-21 por equipo ───────────
         ctrl, tree = self._section(frame,
@@ -208,7 +232,7 @@ class ReportsWindow:
             GROUP BY s.nombre
             ORDER BY cant_sub_21 DESC
         """
-        self._exec_btn(ctrl, tree, sql, lambda: ())
+        self._exec_btn(ctrl, tree, sql, lambda: (), "Jugadores Sub-21 por equipo")
 
     # ── REPORTES ─────────────────────────────────────────────────
     def _build_reportes(self, parent):
@@ -231,7 +255,7 @@ class ReportsWindow:
             WHERE TRUNC(b.fecha_entrada) = TO_DATE(:1,'DD/MM/YYYY')
             ORDER BY b.fecha_entrada
         """
-        self._exec_btn(ctrl, tree, sql, lambda: (ent_fecha.get(),))
+        self._exec_btn(ctrl, tree, sql, lambda: (ent_fecha.get(),), "Bitácora de Accesos")
 
         # ─ R2: Jugadores por peso, estatura y equipo ─────────────
         ctrl, tree = self._section(frame,
@@ -281,6 +305,15 @@ class ReportsWindow:
         tk.Button(ctrl, text="▶ Ejecutar", font=("Segoe UI", 9, "bold"),
                   bg="#6f42c1", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
                   command=run_r2).pack(side=tk.RIGHT, padx=6)
+        
+        tk.Button(ctrl, text="📄 Exportar PDF", font=("Segoe UI", 9),
+                  bg="#28a745", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
+                  command=lambda: self._export_pdf("Jugadores por Físico", 
+                                                   sql_eq if cb_eq.get() != "Todos" else sql_all,
+                                                   lambda: (float(e_pmin.get()), float(e_pmax.get()), 
+                                                            float(e_emin.get()), float(e_emax.get())) + 
+                                                           ((cb_eq.get().split(" - ")[0],) if cb_eq.get() != "Todos" else ())
+                                                  )).pack(side=tk.RIGHT, padx=6)
 
         # ─ R3: Valor total de plantilla por confederación ────────
         ctrl, tree = self._section(frame,
@@ -301,7 +334,8 @@ class ReportsWindow:
             ORDER BY valor_total_USD DESC
         """
         self._exec_btn(ctrl, tree, sql,
-                       lambda: (cb_conf.get().split(" - ")[0],) if cb_conf.get() else ())
+                       lambda: (cb_conf.get().split(" - ")[0],) if cb_conf.get() else (),
+                       "Valor Plantilla por Confederación")
 
         # ─ R4: Selecciones que juegan en cada país anfitrión ─────
         ctrl, tree = self._section(frame,
@@ -342,3 +376,10 @@ class ReportsWindow:
         tk.Button(ctrl, text="▶ Ejecutar", font=("Segoe UI", 9, "bold"),
                   bg="#6f42c1", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
                   command=run_r4).pack(side=tk.RIGHT, padx=6)
+
+        tk.Button(ctrl, text="📄 Exportar PDF", font=("Segoe UI", 9),
+                  bg="#28a745", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
+                  command=lambda: self._export_pdf("Equipos por País Anfitrión",
+                                                   sql_pais4 if cb_pais.get() != "Todos" else sql_all4,
+                                                   lambda: (cb_pais.get(),) if cb_pais.get() != "Todos" else ()
+                                                  )).pack(side=tk.RIGHT, padx=6)
