@@ -1,8 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import db
-from crud_views import GenericCRUD, PersonaSubtypeCRUD
-from reports_views import ReportsWindow
+from database import db
+from logic.crud_views import GenericCRUD, PersonaSubtypeCRUD
+from logic.reports_views import ReportsWindow
 
 class Dashboard:
     def __init__(self, root, user_id, user_type):
