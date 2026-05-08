@@ -1,78 +1,97 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 from db import get_connection
-from datetime import datetime
 from ui_main import MainWindow
 
+# =============================================================================
+# Ventana de Login — punto de entrada de la aplicación
+# =============================================================================
 class LoginWindow:
     def __init__(self, root):
         self.root = root
-        self.root.title("Login - Sistema Mundial")
-        self.root.geometry("300x250")
-        
-        tk.Label(root, text="Usuario:").pack(pady=10)
-        self.entry_usuario = tk.Entry(root)
-        self.entry_usuario.pack(pady=5)
-        
-        tk.Label(root, text="Contraseña:").pack(pady=10)
-        self.entry_password = tk.Entry(root, show="*")
-        self.entry_password.pack(pady=5)
-        
-        tk.Button(root, text="Ingresar", command=self.login).pack(pady=20)
+        self.root.title("Sistema Mundial de Fútbol 2026 — Ingreso")
+        self.root.geometry("420x380")
+        self.root.resizable(False, False)
+        self.root.configure(bg="#1e2a3a")
+        self.root.bind("<Return>", lambda e: self.login())
 
+        # Logo / Cabecera
+        tk.Label(root, text="⚽", font=("Segoe UI", 42), bg="#1e2a3a", fg="#0d6efd").pack(pady=(30, 0))
+        tk.Label(root, text="MUNDIAL 2026",
+                 font=("Segoe UI", 18, "bold"), bg="#1e2a3a", fg="white").pack()
+        tk.Label(root, text="Sistema de Gestión",
+                 font=("Segoe UI", 10), bg="#1e2a3a", fg="#6c9bcf").pack(pady=(0, 20))
+
+        # Formulario
+        form = tk.Frame(root, bg="#2c3e50", padx=30, pady=25)
+        form.pack(fill=tk.X, padx=40)
+
+        tk.Label(form, text="👤  Usuario", font=("Segoe UI", 10, "bold"),
+                 bg="#2c3e50", fg="#cfe2ff", anchor="w").pack(fill=tk.X)
+        self.ent_usuario = ttk.Entry(form, font=("Segoe UI", 11))
+        self.ent_usuario.pack(fill=tk.X, pady=(4, 14))
+        self.ent_usuario.focus()
+
+        tk.Label(form, text="🔑  Contraseña", font=("Segoe UI", 10, "bold"),
+                 bg="#2c3e50", fg="#cfe2ff", anchor="w").pack(fill=tk.X)
+        self.ent_pass = ttk.Entry(form, font=("Segoe UI", 11), show="●")
+        self.ent_pass.pack(fill=tk.X, pady=(4, 6))
+
+        btn = tk.Button(root, text="INGRESAR AL SISTEMA",
+                        font=("Segoe UI", 11, "bold"),
+                        bg="#0d6efd", fg="white",
+                        activebackground="#0b5ed7", activeforeground="white",
+                        bd=0, pady=12, cursor="hand2",
+                        command=self.login)
+        btn.pack(fill=tk.X, padx=40, pady=18)
+
+    # ─── Lógica ────────────────────────────────────────────────
     def login(self):
-        usuario = self.entry_usuario.get()
-        password = self.entry_password.get()
-        
+        usuario  = self.ent_usuario.get().strip()
+        password = self.ent_pass.get()
+
+        if not usuario or not password:
+            messagebox.showwarning("Campos vacíos", "Ingrese usuario y contraseña.")
+            return
+
         conn = get_connection()
-        if conn:
-            cursor = conn.cursor()
-            # Consultar si el usuario existe y la contraseña es correcta
-            try:
-                cursor.execute("""
-                    SELECT codigo, tipo_usuario FROM Usuario 
-                    WHERE nombre_usuario = :1 AND contrasena = :2
-                """, (usuario, password))
-                user_data = cursor.fetchone()
-                
-                if user_data:
-                    cod_usuario, tipo_usuario = user_data
-                    self.registrar_entrada(conn, cod_usuario)
-                    messagebox.showinfo("Éxito", f"Bienvenido {usuario} ({tipo_usuario})")
-                    # Aquí abriremos la ventana principal dependiendo del tipo de usuario
-                    self.abrir_ventana_principal(tipo_usuario, cod_usuario)
-                else:
-                    messagebox.showerror("Error", "Usuario o contraseña incorrectos")
-            except Exception as e:
-                messagebox.showerror("Error", f"Error en la consulta:\n{e}")
-            finally:
-                cursor.close()
-                conn.close()
+        if not conn:
+            return
 
-    def registrar_entrada(self, conn, cod_usuario):
         try:
-            cursor = conn.cursor()
-            cursor.execute("""
-                INSERT INTO Bitacora (cod_usuario, fecha_entrada) 
-                VALUES (:1, CURRENT_TIMESTAMP)
-            """, (cod_usuario,))
-            conn.commit()
-            cursor.close()
-        except Exception as e:
-            print(f"Error al registrar bitácora: {e}")
+            cur = conn.cursor()
+            cur.execute("""SELECT codigo, tipo_usuario FROM Usuario
+                           WHERE nombre_usuario = :1 AND contrasena = :2""",
+                        (usuario, password))
+            row = cur.fetchone()
 
-    def abrir_ventana_principal(self, tipo_usuario, cod_usuario):
-        # Ocultar ventana de login
-        self.root.withdraw()
-        
-        # Crear la nueva ventana Toplevel que servirá como root para el Dashboard
-        dashboard_window = tk.Toplevel(self.root)
-        
-        # Instanciar el MainWindow
-        self.app_main = MainWindow(dashboard_window, cod_usuario, tipo_usuario)
+            if not row:
+                messagebox.showerror("Acceso denegado", "Usuario o contraseña incorrectos.")
+                return
+
+            cod_usuario, tipo_usuario = row
+
+            # Registrar entrada en Bitácora
+            cur.execute("""INSERT INTO Bitacora (cod_usuario, fecha_entrada)
+                           VALUES (:1, CURRENT_TIMESTAMP)""", (cod_usuario,))
+            conn.commit()
+
+            # Abrir ventana principal
+            self.root.withdraw()
+            win = tk.Toplevel(self.root)
+            app = MainWindow(win, cod_usuario, tipo_usuario)
+
+            # Cuando el usuario cierre el MainWindow vía su botón,
+            # sys.exit() ya se encarga; pero si usa la X del SO:
+            win.protocol("WM_DELETE_WINDOW", app.cerrar_sesion)
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Error en el sistema:\n{e}")
+        finally:
+            conn.close()
 
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = LoginWindow(root)
+    LoginWindow(root)
     root.mainloop()

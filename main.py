@@ -1,8 +1,7 @@
-import oracledb
-from tkinter import messagebox
+from ui_login import LoginWindow
+import tkinter as tk
 
-try:
-    connection = oracledb.connect(user="SYSTEM", password="ORLO", dsn="localhost/xe")
-    messagebox.showinfo("Mensaje", "Conectado a la B.D.")
-except:
-    messagebox.showinfo("Mensaje", "Error de conexión")
+if __name__ == "__main__":
+    root = tk.Tk()
+    app  = LoginWindow(root)
+    root.mainloop()
