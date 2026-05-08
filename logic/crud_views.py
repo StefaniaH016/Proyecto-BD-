@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-import db
+from database import db
 import os
 from datetime import datetime
 

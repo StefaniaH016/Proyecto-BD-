@@ -1,4 +1,4 @@
-from ui_login import LoginWindow
+from ui.ui_login import LoginWindow
 import tkinter as tk
 
 if __name__ == "__main__":

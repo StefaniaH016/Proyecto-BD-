@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import db
+from database import db
 
 # =============================================================================
 # Módulo de Consultas y Reportes — Cumple exactamente el enunciado del proyecto

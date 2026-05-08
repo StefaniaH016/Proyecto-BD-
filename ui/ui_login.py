@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from db import get_connection
-from ui_main import MainWindow
+from database.db import get_connection
+from ui.ui_main import MainWindow
 
 # =============================================================================
 # Ventana de Login — punto de entrada de la aplicación
