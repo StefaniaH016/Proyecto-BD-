@@ -327,11 +327,12 @@ class ReportsWindow:
         cb_conf.pack(side=tk.LEFT, padx=6)
         sql = """
             SELECT s.nombre AS equipo,
-                   NVL(SUM(j.valor),0) AS valor_total_USD
+                   SUM(j.valor) AS valor_total_USD
             FROM Seleccion s
-            LEFT JOIN Jugador j ON j.codigo_seleccion = s.codigo_seleccion
+            JOIN Jugador j ON j.codigo_seleccion = s.codigo_seleccion
             WHERE s.codigo_confederacion = :1
             GROUP BY s.nombre
+            HAVING SUM(j.valor) > 0
             ORDER BY valor_total_USD DESC
         """
         self._exec_btn(ctrl, tree, sql,
