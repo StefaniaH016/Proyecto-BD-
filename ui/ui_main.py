@@ -9,10 +9,11 @@ from logic.reports_views import ReportsWindow
 # Ventana principal del sistema — usa ttk.Notebook con pestañas por rol
 # =============================================================================
 class MainWindow:
-    def __init__(self, root, cod_usuario, tipo_usuario):
+    def __init__(self, root, cod_usuario, tipo_usuario, login_win=None):
         self.root        = root
         self.cod_usuario = cod_usuario
         self.tipo_usuario = tipo_usuario.upper()
+        self.login_win = login_win
 
         self.root.title(f"Sistema Mundial de Fútbol 2026  —  {self.tipo_usuario}")
         self.root.geometry("960x680")
@@ -68,12 +69,12 @@ class MainWindow:
                  font=("Segoe UI", 11), bg="#f0f4f8", fg="#333").pack(pady=(20, 8))
 
         tables = [
-            ("📋 Selecciones",        "SELECCION"),
-            ("🗓️ Partidos",           "PARTIDO"),
-            ("👤 Personas",           "PERSONA"),
-            ("🏃 Jugadores",          "JUGADOR"),
-            ("👔 Directores Técnicos","DIRECTOR_TECNICO"),
-            ("📈 Participaciones",    "PARTICIPACION"),
+            ("📋 Selecciones",              "SELECCION"),
+            ("🗓️ Partidos",                 "PARTIDO"),
+            ("👤 Personas",                 "PERSONA"),
+            ("🏃 Jugadores",                "JUGADOR"),
+            ("👔 Directores Técnicos",      "DIRECTOR_TECNICO"),
+            ("⚡ Detalles Partido-Selección","DETALLES_PARTIDO_SELECCION"),
         ]
         grid = tk.Frame(tab, bg="#f0f4f8")
         grid.pack(pady=10)
@@ -99,6 +100,7 @@ class MainWindow:
 
         admin_tables = [
             ("👥 Usuarios",         "USUARIO"),
+            ("🌍 Países",           "PAIS"),
             ("🏙️ Ciudades",         "CIUDAD"),
             ("🗺️ Confederaciones",  "CONFEDERACION"),
             ("🏟️ Estadios",         "ESTADIO"),
@@ -156,8 +158,8 @@ class MainWindow:
                 try:
                     cur = conn.cursor()
                     cur.execute("""UPDATE Bitacora
-                                   SET fecha_salida = CURRENT_TIMESTAMP
-                                   WHERE cod_usuario = :1 AND fecha_salida IS NULL""",
+                                   SET fechaHoraSalida = CURRENT_TIMESTAMP
+                                   WHERE codigo_usuario = :1 AND fechaHoraSalida IS NULL""",
                                 (self.cod_usuario,))
                     conn.commit()
                     cur.close()
@@ -165,7 +167,11 @@ class MainWindow:
                 except Exception as e:
                     print(f"Error bitácora: {e}")
             self.root.destroy()
-            sys.exit()
+            if self.login_win:
+                self.login_win.deiconify()
+            else:
+                import sys
+                sys.exit()
 
 
 if __name__ == "__main__":

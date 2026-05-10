@@ -16,31 +16,26 @@ ENUM_MAP = {
 
 # Para columnas cuyo nombre termina en un FK conocido, llenamos con datos de BD
 FK_COMBO_QUERY = {
-    "COD_CIUDAD":       "SELECT codigo, nombre || ' (' || pais || ')' FROM Ciudad ORDER BY nombre",
-    "COD_CONFEDERACION":"SELECT codigo, nombre FROM Confederacion ORDER BY nombre",
-    "COD_ESTADIO":      "SELECT codigo, nombre FROM Estadio ORDER BY nombre",
-    "COD_SELECCION":    "SELECT codigo, nombre FROM Seleccion ORDER BY nombre",
-    "COD_POSICION":     "SELECT codigo, nombre FROM Posicion ORDER BY nombre",
-    "COD_GRUPO":        "SELECT codigo, 'Grupo ' || letra FROM Grupo ORDER BY letra",
-    "COD_PERSONA":      "SELECT codigo, nombre FROM Persona ORDER BY nombre",
-    "COD_PARTIDO":      "SELECT codigo, 'Partido ' || codigo || ' - ' || fase || ' (' || TO_CHAR(fecha,''DD/MM/YYYY'') || ')' FROM Partido ORDER BY fecha",
-    "COD_USUARIO":      "SELECT codigo, nombre_usuario FROM Usuario ORDER BY nombre_usuario",
+    # Nuevos nombres de columnas según el esquema actualizado
+    "CODIGO_CIUDAD":        "SELECT codigo_ciudad, nombre || ' (' || (SELECT p.nombre FROM Pais p WHERE p.codigo_pais = c.codigo_pais) || ')' FROM Ciudad c ORDER BY nombre",
+    "CODIGO_CONFEDERACION": "SELECT codigo_confederacion, nombre FROM Confederacion ORDER BY nombre",
+    "CODIGO_ESTADIO":       "SELECT codigo_estadio, nombre FROM Estadio ORDER BY nombre",
+    "CODIGO_SELECCION":     "SELECT codigo_seleccion, nombre FROM Seleccion ORDER BY nombre",
+    "CODIGO_POSICION":      "SELECT codigo_posicion, nombre FROM Posicion ORDER BY nombre",
+    "CODIGO_GRUPO":         "SELECT codigo_grupo, 'Grupo ' || nombre FROM Grupo ORDER BY nombre",
+    "CODIGO_PERSONA":       "SELECT codigo_persona, nombre FROM Persona ORDER BY nombre",
+    "CODIGO_PARTIDO":       "SELECT codigo_partido, 'Partido ' || codigo_partido || ' (' || TO_CHAR(fecha,'DD/MM/YYYY') || ')' FROM Partido ORDER BY fecha",
+    "CODIGO_USUARIO":       "SELECT codigo_usuario, nombreUsuario FROM Usuario ORDER BY nombreUsuario",
+    "CODIGO_PAIS":          "SELECT codigo_pais, nombre FROM Pais ORDER BY nombre",
 }
 
 def fetch_combo(query: str):
     """Retorna lista ['id - etiqueta', ...] para poblar Comboboxes FK."""
-    conn = db.get_connection()
-    data = []
-    if conn:
-        try:
-            cur = conn.cursor()
-            cur.execute(query)
-            data = [f"{r[0]} - {r[1]}" for r in cur.fetchall()]
-        except Exception as e:
-            print(f"Error fetch_combo: {e}")
-        finally:
-            conn.close()
-    return data
+    res = db.run_query(query)
+    if res:
+        rows, _ = res
+        return [f"{r[0]} - {r[1]}" for r in rows]
+    return []
 
 
 # =============================================================================
@@ -98,55 +93,55 @@ class GenericCRUD:
     # ---- helpers ----
 
     def _get_schema(self):
-        conn = db.get_connection()
         cols = []
-        if conn:
-            try:
-                cur = conn.cursor()
-                cur.execute("""SELECT column_name, data_type, data_length, nullable
-                               FROM user_tab_columns
-                               WHERE table_name = :1
-                               ORDER BY column_id""", (self.table_name,))
-                for r in cur.fetchall():
-                    cols.append({"name": r[0], "type": r[1], "length": r[2], "nullable": r[3]})
-            except Exception as e:
-                messagebox.showerror("Error de esquema", str(e))
-            finally:
-                conn.close()
+        try:
+            # 1. Obtener todas las columnas
+            sql_cols = """SELECT column_name, data_type, data_length, nullable 
+                          FROM user_tab_columns WHERE table_name = :1 ORDER BY column_id"""
+            res_cols = db.run_query(sql_cols, (self.table_name,))
+            if res_cols:
+                for r in res_cols[0]:
+                    cols.append({"name": r[0], "type": r[1], "length": r[2], "nullable": r[3], "is_pk": False})
+
+            # 2. Marcar las PKs
+            sql_pks = """SELECT cols.column_name FROM user_constraints cons 
+                         JOIN user_cons_columns cols ON cons.constraint_name = cols.constraint_name
+                         WHERE cons.constraint_type = 'P' AND cons.table_name = :1"""
+            res_pks = db.run_query(sql_pks, (self.table_name,))
+            if res_pks:
+                pk_names = {r[0] for r in res_pks[0]}
+                for c in cols:
+                    if c["name"] in pk_names: c["is_pk"] = True
+        except Exception as e:
+            messagebox.showerror("Error de esquema", str(e))
         return cols
 
     def load_data(self):
         for item in self.tree.get_children():
             self.tree.delete(item)
-        conn = db.get_connection()
-        if not conn:
-            return
-        try:
-            cur = conn.cursor()
-            cur.execute(f"SELECT * FROM {self.table_name}")
-            for i, row in enumerate(cur.fetchall()):
-                display = []
-                for idx, val in enumerate(row):
-                    ct = self.columns_info[idx]["type"]
-                    if ct == "BLOB":
-                        display.append("🖼️ [Imagen]" if val else "—")
-                    elif val is None:
-                        display.append("—")
-                    elif ct in ("DATE", "TIMESTAMP(6)"):
-                        try:
-                            display.append(val.strftime("%d/%m/%Y"))
-                        except:
-                            display.append(str(val))
-                    else:
-                        display.append(val)
-                tag = "even" if i % 2 == 0 else "odd"
-                self.tree.insert("", tk.END, values=display, tags=(tag,))
-            self.tree.tag_configure("even", background="#ffffff")
-            self.tree.tag_configure("odd",  background="#f5f8fd")
-        except Exception as e:
-            messagebox.showerror("Error al cargar", str(e))
-        finally:
-            conn.close()
+        
+        res = db.run_query(f"SELECT * FROM {self.table_name}")
+        if not res: return
+        rows, _ = res
+
+        for i, row in enumerate(rows):
+            display = []
+            for idx, val in enumerate(row):
+                ct = self.columns_info[idx]["type"]
+                if ct == "BLOB":
+                    display.append("🖼️ [Imagen]" if val else "—")
+                elif val is None:
+                    display.append("—")
+                elif ct in ("DATE", "TIMESTAMP(6)"):
+                    display.append(val.strftime("%d/%m/%Y") if hasattr(val, "strftime") else str(val))
+                else:
+                    display.append(val)
+            
+            tag = "even" if i % 2 == 0 else "odd"
+            self.tree.insert("", tk.END, values=display, tags=(tag,))
+        
+        self.tree.tag_configure("even", background="#ffffff")
+        self.tree.tag_configure("odd",  background="#f5f8fd")
 
     def add_record(self):
         AddWindow(self.root, self.table_name, self.columns_info, self.load_data)
@@ -154,29 +149,65 @@ class GenericCRUD:
     def delete_record(self):
         sel = self.tree.focus()
         if not sel:
-            messagebox.showwarning("Selección", "Seleccione una fila primero.")
+            messagebox.showwarning("Seleccion", "Seleccione una fila primero.")
             return
         vals = self.tree.item(sel, "values")
-        pk_val = vals[0]
-        pk_col = self.col_names[0]
-        if not messagebox.askyesno("Confirmar", f"¿Eliminar registro {pk_col}={pk_val}?"):
+
+        # Detectar columnas PK consultando user_constraints
+        pk_cols = self._get_pk_cols()
+        if not pk_cols:
+            # Fallback: usar primera columna
+            pk_cols = [self.col_names[0]]
+
+        # Construir WHERE con todas las columnas PK
+        where_parts = [f"{col} = :{i+1}" for i, col in enumerate(pk_cols)]
+        where_clause = " AND ".join(where_parts)
+        pk_vals = [vals[self.col_names.index(col)] for col in pk_cols]
+
+        desc = ", ".join(f"{c}={v}" for c, v in zip(pk_cols, pk_vals))
+        if not messagebox.askyesno("Confirmar", f"\u00bfEliminar registro ({desc})?"):
             return
-        conn = db.get_connection()
-        if conn:
-            try:
-                cur = conn.cursor()
-                cur.execute(f"DELETE FROM {self.table_name} WHERE {pk_col} = :1", (pk_val,))
-                conn.commit()
-                self.load_data()
-                messagebox.showinfo("Éxito", "Registro eliminado.")
-            except Exception as e:
-                err = str(e).upper()
-                if "CHILD RECORD FOUND" in err:
-                    messagebox.showerror("Integridad", "No puede eliminar: otro registro depende de éste.")
-                else:
-                    messagebox.showerror("Error", str(e))
-            finally:
-                conn.close()
+
+        try:
+            db.run_query(f"DELETE FROM {self.table_name} WHERE {where_clause}", pk_vals, commit=True)
+            self.load_data()
+            messagebox.showinfo("Exito", "Registro eliminado.")
+        except Exception as e:
+            self._handle_db_error(e)
+
+    def _get_pk_cols(self):
+        """Retorna lista de columnas que conforman la PK de la tabla."""
+        sql = """SELECT cols.column_name FROM user_constraints cons 
+                 JOIN user_cons_columns cols ON cons.constraint_name = cols.constraint_name 
+                 AND cons.owner = cols.owner 
+                 WHERE cons.constraint_type = 'P' AND cons.table_name = :1 ORDER BY cols.position"""
+        res = db.run_query(sql, (self.table_name,))
+        return [r[0] for r in res[0]] if res else []
+
+    @staticmethod
+    def _handle_db_error(e):
+        """Traduce errores Oracle comunes a mensajes amigables en espanol."""
+        import oracledb
+        if isinstance(e, oracledb.DatabaseError):
+            err, = e.args
+            code = err.code
+            if code == 2292:   # ORA-02292: registro hijo encontrado
+                messagebox.showerror("Integridad",
+                    "No se puede eliminar: otro registro depende de este.\n"
+                    "Elimine primero los registros relacionados.")
+            elif code == 2291: # ORA-02291: clave padre no encontrada
+                messagebox.showerror("Referencia",
+                    "El codigo de FK no existe en la tabla padre.")
+            elif code == 1:    # ORA-00001: restriccion UNIQUE
+                messagebox.showerror("Duplicado",
+                    "Ya existe un registro con esa clave unica.")
+            elif code == 2290: # ORA-02290: CHECK constraint
+                messagebox.showerror("Valor invalido",
+                    "El valor ingresado no cumple las restricciones del campo.")
+            else:
+                messagebox.showerror("Error BD", f"ORA-{code:05d}: {err.message.strip()}")
+        else:
+            messagebox.showerror("Error", str(e))
 
 
 # =============================================================================
@@ -234,6 +265,7 @@ class AddWindow:
 
         widget = None
         key    = col_name.upper()
+        is_pk  = col.get("is_pk", False)
 
         # 1. Enum conocido del dominio
         if key in ENUM_MAP:
@@ -241,8 +273,8 @@ class AddWindow:
             w.current(0)
             widget = w
 
-        # 2. FK con datos de BD
-        elif key in FK_COMBO_QUERY:
+        # 2. FK con datos de BD — solo si NO es PK de esta tabla
+        elif key in FK_COMBO_QUERY and not is_pk:
             data = fetch_combo(FK_COMBO_QUERY[key])
             w = ttk.Combobox(row, values=data, state="readonly", font=("Segoe UI", 9))
             if data:
@@ -307,6 +339,9 @@ class AddWindow:
             # FK combo → extraer id
             if col_name.upper() in FK_COMBO_QUERY and " - " in val:
                 val = val.split(" - ")[0]
+            # Also handle old-style FK column names (without prefix)
+            elif "COD_" + col_name.upper().replace("CODIGO_","") in FK_COMBO_QUERY and " - " in val:
+                val = val.split(" - ")[0]
 
             # Número
             if col_type == "NUMBER":
@@ -342,33 +377,15 @@ class AddWindow:
 
             vals.append(val)
 
-        conn = db.get_connection()
-        if not conn:
-            return
         try:
-            cur = conn.cursor()
-            ph  = []
-            for idx, col in enumerate(self.columns_info):
-                if col["type"] in ("DATE", "TIMESTAMP(6)") and vals[idx] is not None:
-                    ph.append(f"TO_DATE(:{idx+1}, 'DD/MM/YYYY')")
-                else:
-                    ph.append(f":{idx+1}")
+            ph = [f"TO_DATE(:{i+1}, 'DD/MM/YYYY')" if c["type"] in ("DATE", "TIMESTAMP(6)") and vals[i] is not None else f":{i+1}" 
+                  for i, c in enumerate(self.columns_info)]
             cols_str = ", ".join(c["name"] for c in self.columns_info)
             sql = f"INSERT INTO {self.table_name} ({cols_str}) VALUES ({', '.join(ph)})"
-            cur.execute(sql, vals)
-            conn.commit()
-            messagebox.showinfo("Éxito", "Registro añadido correctamente.")
+            
+            db.run_query(sql, vals, commit=True)
+            messagebox.showinfo("Exito", "Registro añadido correctamente.")
             self.on_success()
             self.top.destroy()
         except Exception as e:
-            err = str(e).upper()
-            if "UNIQUE CONSTRAINT" in err:
-                messagebox.showerror("Duplicado", "Ya existe un registro con esa clave única.")
-            elif "PARENT KEY NOT FOUND" in err:
-                messagebox.showerror("Referencia", "El código de la FK no existe en la tabla padre.")
-            elif "CHECK CONSTRAINT" in err:
-                messagebox.showerror("Valor inválido", "El valor ingresado no es válido para este campo.")
-            else:
-                messagebox.showerror("Error BD", str(e))
-        finally:
-            conn.close()
+            GenericCRUD._handle_db_error(e)

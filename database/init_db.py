@@ -1,73 +1,124 @@
 import oracledb
 import os
+import re
 
 # ============================================================
 # Script de inicialización completa de la BD del Mundial 2026
-# Ejecutar: python init_db.py
+# Ejecutar: python database/init_db.py
 # ============================================================
 
 DSN  = "localhost/xe"
 USER = "SYSTEM"
 PWD  = "ORLO"
 
-# Ruta al archivo SQL
 SQL_FILE = os.path.join(os.path.dirname(__file__), 'schema.sql')
+
+
+def parse_statements(sql_content):
+    """
+    Parsea el contenido SQL en sentencias individuales.
+    Acumula líneas hasta encontrar ';' al final de una línea,
+    ignorando líneas que solo son comentarios.
+    """
+    statements = []
+    current = []
+
+    for line in sql_content.splitlines():
+        stripped = line.strip()
+
+        # Ignorar líneas vacías o solo comentarios fuera de un bloque activo
+        if not stripped or stripped.startswith('--'):
+            continue
+
+        current.append(line)
+
+        # Si la línea termina con ';', la sentencia está completa
+        if stripped.endswith(';'):
+            stmt = '\n'.join(current).strip()
+            # Quitar el ';' final (Oracle cursor.execute no lo necesita)
+            if stmt.endswith(';'):
+                stmt = stmt[:-1].strip()
+            if stmt:
+                statements.append(stmt)
+            current = []
+
+    # Si queda algo sin ';' al final (no debería), lo incluimos igual
+    if current:
+        stmt = '\n'.join(current).strip()
+        if stmt:
+            statements.append(stmt)
+
+    return statements
+
 
 def execute_script():
     if not os.path.exists(SQL_FILE):
-        print(f"❌ Error: No se encontró el archivo {SQL_FILE}")
+        print(f"[ERROR] No se encontró {SQL_FILE}")
         return
+
+    print(f"[INFO] Leyendo {SQL_FILE}...")
+    with open(SQL_FILE, 'r', encoding='utf-8') as f:
+        sql_content = f.read()
+
+    statements = parse_statements(sql_content)
+    print(f"   -> {len(statements)} sentencias encontradas\n")
 
     try:
         conn = oracledb.connect(user=USER, password=PWD, dsn=DSN)
         cur  = conn.cursor()
-
-        print(f"📖 Leyendo {SQL_FILE}...")
-        with open(SQL_FILE, 'r', encoding='utf-8') as f:
-            sql_content = f.read()
-
-        # Separar los comandos por ';'
-        # Nota: Esto es una división simple. 
-        # Si hubiera ';' dentro de strings o triggers, fallaría, 
-        # pero para este esquema estándar funciona bien.
-        statements = sql_content.split(';')
-
-        print("🚀 Ejecutando comandos...")
-        for i, sql in enumerate(statements):
-            command = sql.strip()
-            if not command or command.startswith('--'):
-                continue
-
-            try:
-                cur.execute(command)
-                # Extraer el nombre de la tabla o acción para el log
-                first_word = command.split()[0].upper()
-                if first_word == "CREATE":
-                    name = command.split("TABLE")[1].split("(")[0].strip()
-                    print(f"   ✓ Tabla creada: {name}")
-                elif first_word == "DROP":
-                    name = command.split("TABLE")[1].split("CASCADE")[0].strip()
-                    print(f"   ✓ Tabla eliminada: {name}")
-                elif first_word == "INSERT":
-                    pass # No logueamos cada insert para no saturar la consola
-                elif first_word == "COMMIT":
-                    print(f"   ✓ Cambios guardados (COMMIT)")
-
-            except oracledb.DatabaseError as e:
-                err, = e.args
-                # Ignorar error "table or view does not exist" al borrar
-                if "DROP" in command.upper() and err.code == 942:
-                    continue
-                print(f"   ✗ Error en comando {i+1}: {e}")
-                print(f"     SQL: {command[:50]}...")
-
-        conn.commit()
-        cur.close()
-        conn.close()
-        print("\n✅ ¡Base de datos inicializada exitosamente desde schema.sql!")
-
     except Exception as e:
-        print(f"\n❌ Error general: {e}")
+        print(f"[ERROR] No se pudo conectar a Oracle: {e}")
+        return
+
+    drops = creates = inserts = errors = 0
+
+    for i, stmt in enumerate(statements, start=1):
+        # Determinar el tipo de sentencia ANTES de ejecutar
+        first_word = stmt.split()[0].upper()
+
+        try:
+            cur.execute(stmt)
+
+            if first_word == "DROP":
+                name = stmt.split()[2]
+                print(f"   [DROP] {name}")
+                drops += 1
+            elif first_word == "CREATE":
+                # Extraer nombre de tabla: CREATE TABLE NombreTabla (
+                match = re.search(r'CREATE\s+TABLE\s+(\w+)', stmt, re.IGNORECASE)
+                name = match.group(1) if match else "?"
+                print(f"   [CREATE] {name}")
+                creates += 1
+            elif first_word == "INSERT":
+                inserts += 1
+            elif first_word == "COMMIT":
+                conn.commit()
+                print(f"\n   [COMMIT] Cambios guardados")
+
+        except oracledb.DatabaseError as e:
+            err, = e.args
+            # Ignorar DROP de tablas que no existen
+            if first_word == "DROP" and err.code == 942:
+                continue
+            # Cualquier otro error se reporta
+            print(f"   [ERROR] [{first_word}] sentencia {i}: ORA-{err.code}")
+            print(f"      SQL: {stmt[:70].replace(chr(10), ' ')}...")
+            errors += 1
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    print(f"\n{'='*50}")
+    print(f"  Tablas eliminadas:    {drops}")
+    print(f"  Tablas creadas:       {creates}")
+    print(f"  Registros insertados: {inserts}")
+    if errors:
+        print(f"  ERRORES:              {errors}")
+    else:
+        print(f"  Sin errores - OK")
+    print(f"{'='*50}")
+
 
 if __name__ == '__main__':
     execute_script()

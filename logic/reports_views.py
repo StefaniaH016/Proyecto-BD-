@@ -147,14 +147,13 @@ class ReportsWindow:
                    p.nombre AS jugador,
                    j.valor  AS valor_USD
             FROM Jugador j
-            JOIN Persona     p  ON j.cod_persona      = p.codigo
-            JOIN Seleccion   s  ON p.cod_seleccion     = s.codigo
-            JOIN Confederacion c ON s.cod_confederacion = c.codigo
+            JOIN Persona      p  ON j.codigo_persona      = p.codigo_persona
+            JOIN Seleccion    s  ON j.codigo_seleccion    = s.codigo_seleccion
+            JOIN Confederacion c ON s.codigo_confederacion = c.codigo_confederacion
             WHERE j.valor = (
                 SELECT MAX(j2.valor) FROM Jugador j2
-                JOIN Persona   p2 ON j2.cod_persona    = p2.codigo
-                JOIN Seleccion s2 ON p2.cod_seleccion  = s2.codigo
-                WHERE s2.cod_confederacion = c.codigo
+                JOIN Seleccion s2 ON j2.codigo_seleccion = s2.codigo_seleccion
+                WHERE s2.codigo_confederacion = c.codigo_confederacion
             )
             ORDER BY j.valor DESC
         """
@@ -163,22 +162,22 @@ class ReportsWindow:
         # ─ C2: Partidos en un estadio elegido ────────────────────
         ctrl, tree = self._section(frame,
             "C2 · Partidos que se llevarán a cabo en un estadio")
-        stadiums = self._combo_from_db("SELECT codigo, nombre FROM Estadio ORDER BY nombre")
+        stadiums = self._combo_from_db("SELECT codigo_estadio, nombre FROM Estadio ORDER BY nombre")
         tk.Label(ctrl, text="Estadio:", bg="#ffffff").pack(side=tk.LEFT)
         cb_est = ttk.Combobox(ctrl, values=stadiums, state="readonly", width=35)
         cb_est.pack(side=tk.LEFT, padx=6)
         if stadiums: cb_est.current(0)
         sql = """
-            SELECT p.codigo,
-                   p.fase,
+            SELECT p.codigo_partido,
                    TO_CHAR(p.fecha,'DD/MM/YYYY') AS fecha,
                    p.hora,
                    e.nombre AS estadio,
-                   c.nombre || ', ' || c.pais AS ciudad
-            FROM Partido p
-            JOIN Estadio e ON p.cod_estadio = e.codigo
-            JOIN Ciudad  c ON e.cod_ciudad  = c.codigo
-            WHERE e.codigo = :1
+                   c.nombre || ', ' || pa.nombre AS ciudad_pais
+            FROM Partido  p
+            JOIN Estadio  e  ON p.codigo_estadio = e.codigo_estadio
+            JOIN Ciudad   c  ON e.codigo_ciudad  = c.codigo_ciudad
+            JOIN Pais     pa ON c.codigo_pais    = pa.codigo_pais
+            WHERE e.codigo_estadio = :1
             ORDER BY p.fecha
         """
         self._exec_btn(ctrl, tree, sql,
@@ -190,22 +189,21 @@ class ReportsWindow:
             "C3 · Equipo más costoso jugando en cada país anfitrión (Fase de Grupos)")
         sql = """
             WITH costo AS (
-                SELECT s.codigo, s.nombre AS equipo,
+                SELECT s.codigo_seleccion, s.nombre AS equipo,
                        NVL(SUM(j.valor),0) AS valor_total
                 FROM Seleccion s
-                LEFT JOIN Persona p ON p.cod_seleccion = s.codigo AND p.tipo_persona = 'JUGADOR'
-                LEFT JOIN Jugador j ON j.cod_persona = p.codigo
-                GROUP BY s.codigo, s.nombre
+                LEFT JOIN Jugador j ON j.codigo_seleccion = s.codigo_seleccion
+                GROUP BY s.codigo_seleccion, s.nombre
             ),
             por_pais AS (
-                SELECT DISTINCT ci.pais, co.equipo, co.valor_total
-                FROM Participacion pt
-                JOIN Partido    pa ON pt.cod_partido   = pa.codigo
-                JOIN Estadio    e  ON pa.cod_estadio   = e.codigo
-                JOIN Ciudad     ci ON e.cod_ciudad     = ci.codigo
-                JOIN costo      co ON pt.cod_seleccion = co.codigo
-                WHERE ci.pais IN ('México','USA','Canadá')
-                  AND UPPER(pa.fase) LIKE '%GRUPO%'
+                SELECT DISTINCT pa.nombre AS pais, co.equipo, co.valor_total
+                FROM Detalles_Partido_Seleccion dps
+                JOIN Partido    p  ON dps.codigo_partido   = p.codigo_partido
+                JOIN Estadio    e  ON p.codigo_estadio     = e.codigo_estadio
+                JOIN Ciudad     ci ON e.codigo_ciudad      = ci.codigo_ciudad
+                JOIN Pais       pa ON ci.codigo_pais       = pa.codigo_pais
+                JOIN costo      co ON dps.codigo_seleccion = co.codigo_seleccion
+                WHERE pa.nombre IN ('México','USA','Canadá')
             )
             SELECT pp.pais AS pais_anfitrion,
                    pp.equipo AS equipo_mas_costoso,
@@ -224,11 +222,11 @@ class ReportsWindow:
             "C4 · Cantidad de jugadores por equipo con menos de 21 años")
         sql = """
             SELECT s.nombre AS equipo,
-                   COUNT(p.codigo) AS cant_sub_21
-            FROM Seleccion s
-            JOIN Persona p ON p.cod_seleccion = s.codigo
-            WHERE p.tipo_persona = 'JUGADOR'
-              AND TRUNC(MONTHS_BETWEEN(SYSDATE, p.fecha_nacimiento)/12) < 21
+                   COUNT(p.codigo_persona) AS cant_sub_21
+            FROM Jugador j
+            JOIN Persona   p ON j.codigo_persona    = p.codigo_persona
+            JOIN Seleccion s ON j.codigo_seleccion  = s.codigo_seleccion
+            WHERE TRUNC(MONTHS_BETWEEN(SYSDATE, p.fecha_nacimiento)/12) < 21
             GROUP BY s.nombre
             ORDER BY cant_sub_21 DESC
         """
@@ -246,14 +244,14 @@ class ReportsWindow:
         ent_fecha.insert(0, "01/06/2026")
         ent_fecha.pack(side=tk.LEFT, padx=6)
         sql = """
-            SELECT u.nombre_usuario,
+            SELECT u.nombreUsuario,
                    u.tipo_usuario,
-                   TO_CHAR(b.fecha_entrada,'DD/MM/YYYY HH24:MI:SS') AS entrada,
-                   TO_CHAR(b.fecha_salida, 'DD/MM/YYYY HH24:MI:SS') AS salida
+                   TO_CHAR(b.fechaHoraEntrada,'DD/MM/YYYY HH24:MI:SS') AS entrada,
+                   TO_CHAR(b.fechaHoraSalida, 'DD/MM/YYYY HH24:MI:SS') AS salida
             FROM Bitacora b
-            JOIN Usuario u ON b.cod_usuario = u.codigo
-            WHERE TRUNC(b.fecha_entrada) = TO_DATE(:1,'DD/MM/YYYY')
-            ORDER BY b.fecha_entrada
+            JOIN Usuario u ON b.codigo_usuario = u.codigo_usuario
+            WHERE TRUNC(b.fechaHoraEntrada) = TO_DATE(:1,'DD/MM/YYYY')
+            ORDER BY b.fechaHoraEntrada
         """
         self._exec_btn(ctrl, tree, sql, lambda: (ent_fecha.get(),), "Bitácora de Accesos")
 
@@ -271,7 +269,7 @@ class ReportsWindow:
         tk.Label(ctrl, text="max:", bg="#ffffff").pack(side=tk.LEFT)
         e_emax = ttk.Entry(ctrl, width=5); e_emax.insert(0,"2.20"); e_emax.pack(side=tk.LEFT, padx=(2,10))
 
-        equipos = self._combo_from_db("SELECT codigo, nombre FROM Seleccion ORDER BY nombre")
+        equipos = self._combo_from_db("SELECT codigo_seleccion, nombre FROM Seleccion ORDER BY nombre")
         tk.Label(ctrl, text="Equipo:", bg="#ffffff").pack(side=tk.LEFT)
         cb_eq = ttk.Combobox(ctrl, values=["Todos"] + equipos, state="readonly", width=20)
         cb_eq.current(0); cb_eq.pack(side=tk.LEFT, padx=6)
@@ -281,13 +279,13 @@ class ReportsWindow:
                    j.peso, j.estatura, j.valor,
                    pos.nombre AS posicion
             FROM Jugador j
-            JOIN Persona   p   ON j.cod_persona    = p.codigo
-            JOIN Seleccion s   ON p.cod_seleccion  = s.codigo
-            JOIN Posicion  pos ON j.cod_posicion   = pos.codigo
+            JOIN Persona   p   ON j.codigo_persona    = p.codigo_persona
+            JOIN Seleccion s   ON j.codigo_seleccion  = s.codigo_seleccion
+            JOIN Posicion  pos ON j.codigo_posicion   = pos.codigo_posicion
             WHERE j.peso     BETWEEN :1 AND :2
               AND j.estatura BETWEEN :3 AND :4
             ORDER BY j.valor DESC"""
-        sql_eq   = sql_all.replace("ORDER BY", "AND s.codigo = :5 ORDER BY")
+        sql_eq   = sql_all.replace("ORDER BY", "AND s.codigo_seleccion = :5 ORDER BY")
 
         def run_r2():
             try:
@@ -318,7 +316,7 @@ class ReportsWindow:
         # ─ R3: Valor total de plantilla por confederación ────────
         ctrl, tree = self._section(frame,
             "R3 · Valor total de jugadores por equipo de una confederación")
-        confs = self._combo_from_db("SELECT codigo, nombre FROM Confederacion ORDER BY nombre")
+        confs = self._combo_from_db("SELECT codigo_confederacion, nombre FROM Confederacion ORDER BY nombre")
         tk.Label(ctrl, text="Confederación:", bg="#ffffff").pack(side=tk.LEFT)
         cb_conf = ttk.Combobox(ctrl, values=confs, state="readonly", width=22)
         if confs: cb_conf.current(0)
@@ -327,9 +325,8 @@ class ReportsWindow:
             SELECT s.nombre AS equipo,
                    NVL(SUM(j.valor),0) AS valor_total_USD
             FROM Seleccion s
-            LEFT JOIN Persona p ON p.cod_seleccion = s.codigo AND p.tipo_persona = 'JUGADOR'
-            LEFT JOIN Jugador j ON j.cod_persona   = p.codigo
-            WHERE s.cod_confederacion = :1
+            LEFT JOIN Jugador j ON j.codigo_seleccion = s.codigo_seleccion
+            WHERE s.codigo_confederacion = :1
             GROUP BY s.nombre
             ORDER BY valor_total_USD DESC
         """
@@ -340,38 +337,45 @@ class ReportsWindow:
         # ─ R4: Selecciones que juegan en cada país anfitrión ─────
         ctrl, tree = self._section(frame,
             "R4 · Equipos que jugarán en cada país anfitrión")
-        paises = ["Todos", "México", "USA", "Canadá"]
+        
+        # Cargar países dinámicamente
+        paises_db = self._combo_from_db("SELECT codigo_pais, nombre FROM Pais ORDER BY nombre")
+        paises_opciones = ["Todos"] + paises_db
+
         tk.Label(ctrl, text="País anfitrión:", bg="#ffffff").pack(side=tk.LEFT)
-        cb_pais = ttk.Combobox(ctrl, values=paises, state="readonly", width=15)
-        cb_pais.current(0); cb_pais.pack(side=tk.LEFT, padx=6)
+        cb_pais = ttk.Combobox(ctrl, values=paises_opciones, state="readonly", width=25)
+        cb_pais.current(0)
+        cb_pais.pack(side=tk.LEFT, padx=6)
 
         sql_all4 = """
-            SELECT DISTINCT ci.pais AS pais_anfitrion, s.nombre AS seleccion
-            FROM Participacion pt
-            JOIN Partido    pa ON pt.cod_partido   = pa.codigo
-            JOIN Estadio    e  ON pa.cod_estadio   = e.codigo
-            JOIN Ciudad     ci ON e.cod_ciudad     = ci.codigo
-            JOIN Seleccion  s  ON pt.cod_seleccion = s.codigo
-            WHERE ci.pais IN ('México','USA','Canadá')
-            ORDER BY ci.pais, s.nombre
+            SELECT DISTINCT pa.nombre AS pais_anfitrion, s.nombre AS seleccion
+            FROM Detalles_Partido_Seleccion dps
+            JOIN Partido    p  ON dps.codigo_partido   = p.codigo_partido
+            JOIN Estadio    e  ON p.codigo_estadio     = e.codigo_estadio
+            JOIN Ciudad     ci ON e.codigo_ciudad      = ci.codigo_ciudad
+            JOIN Pais       pa ON ci.codigo_pais       = pa.codigo_pais
+            JOIN Seleccion  s  ON dps.codigo_seleccion = s.codigo_seleccion
+            ORDER BY pa.nombre, s.nombre
         """
         sql_pais4 = """
-            SELECT DISTINCT ci.pais AS pais_anfitrion, s.nombre AS seleccion
-            FROM Participacion pt
-            JOIN Partido    pa ON pt.cod_partido   = pa.codigo
-            JOIN Estadio    e  ON pa.cod_estadio   = e.codigo
-            JOIN Ciudad     ci ON e.cod_ciudad     = ci.codigo
-            JOIN Seleccion  s  ON pt.cod_seleccion = s.codigo
-            WHERE ci.pais = :1
+            SELECT DISTINCT pa.nombre AS pais_anfitrion, s.nombre AS seleccion
+            FROM Detalles_Partido_Seleccion dps
+            JOIN Partido    p  ON dps.codigo_partido   = p.codigo_partido
+            JOIN Estadio    e  ON p.codigo_estadio     = e.codigo_estadio
+            JOIN Ciudad     ci ON e.codigo_ciudad      = ci.codigo_ciudad
+            JOIN Pais       pa ON ci.codigo_pais       = pa.codigo_pais
+            JOIN Seleccion  s  ON dps.codigo_seleccion = s.codigo_seleccion
+            WHERE pa.codigo_pais = :1
             ORDER BY s.nombre
         """
 
         def run_r4():
-            p = cb_pais.get()
-            if p == "Todos":
+            val = cb_pais.get()
+            if val == "Todos":
                 self._run(tree, sql_all4)
             else:
-                self._run(tree, sql_pais4, (p,))
+                pais_id = val.split(" - ")[0]
+                self._run(tree, sql_pais4, (pais_id,))
 
         tk.Button(ctrl, text="▶ Ejecutar", font=("Segoe UI", 9, "bold"),
                   bg="#6f42c1", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
@@ -379,7 +383,8 @@ class ReportsWindow:
 
         tk.Button(ctrl, text="📄 Exportar PDF", font=("Segoe UI", 9),
                   bg="#28a745", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
-                  command=lambda: self._export_pdf("Equipos por País Anfitrión",
-                                                   sql_pais4 if cb_pais.get() != "Todos" else sql_all4,
-                                                   lambda: (cb_pais.get(),) if cb_pais.get() != "Todos" else ()
-                                                  )).pack(side=tk.RIGHT, padx=6)
+                  command=lambda: self._export_pdf(
+                      "Equipos por Pais Anfitrion",
+                      sql_pais4 if cb_pais.get() != "Todos" else sql_all4,
+                      lambda: (cb_pais.get().split(" - ")[0],) if cb_pais.get() != "Todos" else ()
+                  )).pack(side=tk.RIGHT, padx=6)
