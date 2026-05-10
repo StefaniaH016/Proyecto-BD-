@@ -5,9 +5,9 @@ from database.db import get_connection
 from logic.crud_views import GenericCRUD
 from logic.reports_views import ReportsWindow
 
-# =============================================================================
+# =====================================================================
 # Ventana principal del sistema — usa ttk.Notebook con pestañas por rol
-# =============================================================================
+# =====================================================================
 class MainWindow:
     def __init__(self, root, cod_usuario, tipo_usuario, login_win=None):
         self.root        = root
