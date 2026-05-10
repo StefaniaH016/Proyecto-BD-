@@ -1,1 +1,5 @@
 oracledb
+pandas
+fpdf2
+pymupdf
+Pillow
