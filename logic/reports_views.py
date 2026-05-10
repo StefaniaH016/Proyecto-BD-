@@ -203,7 +203,7 @@ class ReportsWindow:
                 JOIN Ciudad     ci ON e.codigo_ciudad      = ci.codigo_ciudad
                 JOIN Pais       pa ON ci.codigo_pais       = pa.codigo_pais
                 JOIN costo      co ON dps.codigo_seleccion = co.codigo_seleccion
-                WHERE pa.nombre IN ('México','USA','Canadá')
+                WHERE pa.codigo_pais IN (SELECT DISTINCT codigo_pais FROM Ciudad c2 JOIN Estadio e2 ON c2.codigo_ciudad = e2.codigo_ciudad)
             )
             SELECT pp.pais AS pais_anfitrion,
                    pp.equipo AS equipo_mas_costoso,
@@ -213,6 +213,7 @@ class ReportsWindow:
                 SELECT MAX(valor_total) FROM por_pais pp2
                 WHERE pp2.pais = pp.pais
             )
+            AND pp.valor_total > 0
             ORDER BY pp.pais
         """
         self._exec_btn(ctrl, tree, sql, lambda: (), "Equipo más costoso por país")
