@@ -76,23 +76,39 @@ class ReportsWindow:
 
     def _run(self, tree, sql, params=()):
         """Ejecuta query y llena el tree dinámicamente."""
+        print(f"[DEBUG SQL] Ejecutando: {sql[:100]}...")
         for item in tree.get_children():
             tree.delete(item)
         conn = db.get_connection()
-        if not conn: return
+        if not conn: 
+            print("[DEBUG SQL] Error: No se pudo obtener conexión")
+            return
         try:
             cur = conn.cursor()
             cur.execute(sql, params)
-            cols = [d[0].replace("_", " ").title() for d in cur.description]
-            tree["columns"] = [d[0] for d in cur.description]
+            
+            if not cur.description:
+                print("[DEBUG SQL] Error: No hay descripción de columnas")
+                return
+
+            cols = [d[0] for d in cur.description]
+            print(f"[DEBUG SQL] Columnas detectadas: {cols}")
+            
+            tree["columns"] = cols
             for c in cur.description:
                 tree.heading(c[0], text=c[0].replace("_", " ").title())
                 tree.column( c[0], width=140, anchor="center")
-            for i, row in enumerate(cur.fetchall()):
+            
+            rows = cur.fetchall()
+            print(f"[DEBUG SQL] Filas encontradas: {len(rows)}")
+            
+            for i, row in enumerate(rows):
                 tree.insert("", tk.END, values=row, tags=("even" if i%2==0 else "odd",))
+            
             tree.tag_configure("even", background="#ffffff")
             tree.tag_configure("odd",  background="#f5f8fd")
         except Exception as e:
+            print(f"[DEBUG SQL] EXCEPCIÓN: {str(e)}")
             messagebox.showerror("Error en consulta", str(e))
         finally:
             conn.close()
@@ -113,7 +129,7 @@ class ReportsWindow:
         # Botón Ejecutar (Vista en tabla)
         tk.Button(ctrl, text="▶ Ejecutar", font=("Segoe UI", 9, "bold"),
                   bg="#6f42c1", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
-                  command=lambda: self._run(tree, sql, params_fn())).pack(side=tk.RIGHT, padx=6)
+                  command=lambda t=tree: self._run(t, sql, params_fn())).pack(side=tk.RIGHT, padx=6)
         
         # Botón PDF (Exportación)
         tk.Button(ctrl, text="📄 Exportar PDF", font=("Segoe UI", 9),
@@ -277,30 +293,33 @@ class ReportsWindow:
         cb_eq.current(0); cb_eq.pack(side=tk.LEFT, padx=6)
 
         sql_all  = """
-            SELECT p.nombre, s.nombre AS equipo,
-                   j.peso, j.estatura, j.valor,
-                   pos.nombre AS posicion
-            FROM Jugador j
-            JOIN Persona   p   ON j.codigo_persona    = p.codigo_persona
-            JOIN Seleccion s   ON j.codigo_seleccion  = s.codigo_seleccion
-            JOIN Posicion  pos ON j.codigo_posicion   = pos.codigo_posicion
-            WHERE j.peso     BETWEEN :1 AND :2
-              AND j.estatura BETWEEN :3 AND :4
-            ORDER BY j.valor DESC"""
-        sql_eq   = sql_all.replace("ORDER BY", "AND s.codigo_seleccion = :5 ORDER BY")
+            SELECT P.NOMBRE, S.NOMBRE AS EQUIPO,
+                   J.PESO, J.ESTATURA, J.VALOR,
+                   NVL(POS.NOMBRE, 'Sin definir') AS POSICION
+            FROM JUGADOR J
+            JOIN PERSONA P ON J.CODIGO_PERSONA = P.CODIGO_PERSONA
+            JOIN SELECCION S ON J.CODIGO_SELECCION = S.CODIGO_SELECCION
+            LEFT JOIN POSICION POS ON J.CODIGO_POSICION = POS.CODIGO_POSICION
+            WHERE J.PESO BETWEEN :1 AND :2
+              AND J.ESTATURA BETWEEN :3 AND :4
+            ORDER BY J.VALOR DESC"""
+        sql_eq   = sql_all.replace("ORDER BY", "AND S.CODIGO_SELECCION = :5 ORDER BY")
 
-        def run_r2():
+        def run_r2(t=tree):
             try:
                 pm, px = float(e_pmin.get()), float(e_pmax.get())
                 em, ex = float(e_emin.get()), float(e_emax.get())
             except ValueError:
                 messagebox.showwarning("Valores", "Ingrese números válidos."); return
+            
             eq_val = cb_eq.get()
+            print(f"[DEBUG R2] Filtros: Peso {pm}-{px}, Estatura {em}-{ex}, Equipo: {eq_val}")
+            
             if eq_val == "Todos":
-                self._run(tree, sql_all, (pm, px, em, ex))
+                self._run(t, sql_all, (pm, px, em, ex))
             else:
                 eq_id = eq_val.split(" - ")[0]
-                self._run(tree, sql_eq, (pm, px, em, ex, eq_id))
+                self._run(t, sql_eq, (pm, px, em, ex, eq_id))
 
         tk.Button(ctrl, text="▶ Ejecutar", font=("Segoe UI", 9, "bold"),
                   bg="#6f42c1", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
@@ -371,13 +390,13 @@ class ReportsWindow:
             ORDER BY s.nombre
         """
 
-        def run_r4():
+        def run_r4(t=tree):
             val = cb_pais.get()
             if val == "Todos":
-                self._run(tree, sql_all4)
+                self._run(t, sql_all4)
             else:
                 pais_id = val.split(" - ")[0]
-                self._run(tree, sql_pais4, (pais_id,))
+                self._run(t, sql_pais4, (pais_id,))
 
         tk.Button(ctrl, text="▶ Ejecutar", font=("Segoe UI", 9, "bold"),
                   bg="#6f42c1", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
