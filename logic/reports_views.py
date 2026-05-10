@@ -214,6 +214,7 @@ class ReportsWindow:
                 SELECT MAX(valor_total) FROM por_pais pp2
                 WHERE pp2.pais = pp.pais
             )
+            AND pp.valor_total > 0
             ORDER BY pp.pais
         """
         self._exec_btn(ctrl, tree, sql, lambda: (), "Equipo más costoso por país")

@@ -428,6 +428,10 @@ INSERT INTO Partido VALUES (16, TO_DATE('20/06/2026','DD/MM/YYYY'), '03:00',  1,
 INSERT INTO Partido VALUES (17, TO_DATE('25/06/2026','DD/MM/YYYY'), '00:00',  1, 3);  -- Escocia vs Brasil
 INSERT INTO Partido VALUES (18, TO_DATE('25/06/2026','DD/MM/YYYY'), '00:00',  1, 3);  -- Marruecos vs Haití
 
+-- PARTIDOS EN CANADÁ (Nuevos)
+INSERT INTO Partido VALUES (19, TO_DATE('12/06/2026','DD/MM/YYYY'), '19:00', 13, 1);  -- Canadá vs Suiza (Toronto)
+INSERT INTO Partido VALUES (20, TO_DATE('13/06/2026','DD/MM/YYYY'), '20:00', 14, 1);  -- Inglaterra vs España (Vancouver)
+
 -- ============================================================
 -- PERSONAS 
 -- ============================================================
@@ -443,6 +447,19 @@ INSERT INTO Persona VALUES (9,  'Tyler Adams',        'USA',       TO_DATE('27/0
 INSERT INTO Persona VALUES (10, 'Lionel Scaloni',     'Argentina', TO_DATE('16/05/1978','DD/MM/YYYY'));
 INSERT INTO Persona VALUES (11, 'Didier Deschamps',   'Francia',   TO_DATE('15/10/1968','DD/MM/YYYY'));
 INSERT INTO Persona VALUES (12, 'Javier Aguirre',     'México',    TO_DATE('01/12/1958','DD/MM/YYYY'));
+-- Nuevos jugadores estrella
+INSERT INTO Persona VALUES (13, 'Vinícius Júnior',    'Brasil',    TO_DATE('12/07/2000','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (14, 'Alphonso Davies',    'Canadá',    TO_DATE('02/11/2000','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (15, 'Jamal Musiala',      'Alemania',  TO_DATE('26/02/2003','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (16, 'Lamine Yamal',       'España',    TO_DATE('13/07/2007','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (17, 'Jude Bellingham',    'Inglaterra',TO_DATE('29/06/2003','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (18, 'Virgil van Dijk',    'Países Bajos', TO_DATE('08/07/1991','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (19, 'Kevin De Bruyne',    'Bélgica',   TO_DATE('28/06/1991','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (20, 'Luis Díaz',          'Colombia',  TO_DATE('13/01/1997','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (21, 'Federico Valverde',  'Uruguay',   TO_DATE('22/07/1998','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (22, 'Darwin Núñez',       'Uruguay',   TO_DATE('24/06/1999','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (23, 'Moises Caicedo',     'Ecuador',   TO_DATE('02/11/2001','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (24, 'Achraf Hakimi',      'Marruecos', TO_DATE('04/11/1998','DD/MM/YYYY'));
 
 -- ============================================================
 -- JUGADORES
@@ -456,6 +473,19 @@ INSERT INTO Jugador VALUES (6, 1.83, 78,  10000000,  3, 1);
 INSERT INTO Jugador VALUES (7, 1.73, 70,  35000000,  3, 4);
 INSERT INTO Jugador VALUES (8, 1.77, 76,  65000000,  2, 4);
 INSERT INTO Jugador VALUES (9, 1.75, 68,  25000000,  2, 3);
+-- Nuevos jugadores registrados
+INSERT INTO Jugador VALUES (13, 1.76, 73, 180000000, 12, 4); -- Vinicius (Brasil)
+INSERT INTO Jugador VALUES (14, 1.83, 75,  70000000,  1, 2); -- Davies (Canadá)
+INSERT INTO Jugador VALUES (15, 1.84, 72, 110000000, 33, 3); -- Musiala (Alemania)
+INSERT INTO Jugador VALUES (16, 1.78, 66, 120000000, 37, 4); -- Yamal (España)
+INSERT INTO Jugador VALUES (17, 1.86, 75, 150000000, 25, 3); -- Bellingham (Inglaterra)
+INSERT INTO Jugador VALUES (18, 1.93, 92,  32000000, 34, 2); -- Van Dijk (Países Bajos)
+INSERT INTO Jugador VALUES (19, 1.81, 70,  60000000, 39, 3); -- De Bruyne (Bélgica)
+INSERT INTO Jugador VALUES (20, 1.78, 73,  75000000, 16, 4); -- Luis Díaz (Colombia)
+INSERT INTO Jugador VALUES (21, 1.82, 78, 100000000, 18, 3); -- Valverde (Uruguay)
+INSERT INTO Jugador VALUES (22, 1.87, 81,  65000000, 18, 4); -- Darwin (Uruguay)
+INSERT INTO Jugador VALUES (23, 1.78, 71,  80000000, 11, 3); -- Caicedo (Ecuador)
+INSERT INTO Jugador VALUES (24, 1.81, 73,  65000000, 14, 2); -- Hakimi (Marruecos)
 
 -- ============================================================
 -- DIRECTORES TÉCNICOS
@@ -519,5 +549,13 @@ INSERT INTO Detalles_Partido_Seleccion VALUES (12, 17, 3, 1);
 -- Partido 18: Marruecos 2 - 1 Haití
 INSERT INTO Detalles_Partido_Seleccion VALUES (14, 18, 2, 1);
 INSERT INTO Detalles_Partido_Seleccion VALUES (42, 18, 1, 2);
+
+-- Detalles Partidos Canadá
+-- Partido 19: Canadá vs Suiza
+INSERT INTO Detalles_Partido_Seleccion VALUES (1,  19, 1, 1);
+INSERT INTO Detalles_Partido_Seleccion VALUES (35, 19, 1, 1);
+-- Partido 20: Inglaterra vs España
+INSERT INTO Detalles_Partido_Seleccion VALUES (25, 20, 3, 2);
+INSERT INTO Detalles_Partido_Seleccion VALUES (37, 20, 2, 3);
 
 COMMIT;
