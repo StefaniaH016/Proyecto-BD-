@@ -85,8 +85,9 @@ class GenericCRUD:
 
         ttk.Button(btn_frame, text="🔄  Refrescar", command=self.load_data).pack(side=tk.LEFT, padx=4)
         if not read_only:
-            ttk.Button(btn_frame, text="➕  Añadir",   command=self.add_record).pack(side=tk.LEFT, padx=4)
-            ttk.Button(btn_frame, text="❌  Eliminar", command=self.delete_record).pack(side=tk.LEFT, padx=4)
+            ttk.Button(btn_frame, text="➕  Añadir",    command=self.add_record).pack(side=tk.LEFT, padx=4)
+            ttk.Button(btn_frame, text="✏️  Modificar", command=self.edit_record).pack(side=tk.LEFT, padx=4)
+            ttk.Button(btn_frame, text="❌  Eliminar",  command=self.delete_record).pack(side=tk.LEFT, padx=4)
 
         self.load_data()
 
@@ -145,6 +146,16 @@ class GenericCRUD:
 
     def add_record(self):
         AddWindow(self.root, self.table_name, self.columns_info, self.load_data)
+
+    def edit_record(self):
+        sel = self.tree.focus()
+        if not sel:
+            messagebox.showwarning("Selección", "Seleccione una fila para modificar.")
+            return
+        vals = self.tree.item(sel, "values")
+        # vals contiene los valores mostrados (strings). 
+        # AddWindow se encargará de convertirlos si es necesario.
+        AddWindow(self.root, self.table_name, self.columns_info, self.load_data, edit_data=vals)
 
     def delete_record(self):
         sel = self.tree.focus()
@@ -214,9 +225,10 @@ class GenericCRUD:
 # Ventana de Añadir con widgets inteligentes por tipo
 # =============================================================================
 class AddWindow:
-    def __init__(self, parent, table_name, columns_info, on_success):
+    def __init__(self, parent, table_name, columns_info, on_success, edit_data=None):
         self.top = tk.Toplevel(parent)
-        self.top.title(f"✨ Añadir — {table_name}")
+        self.edit_mode = edit_data is not None
+        self.top.title(f"{'✏️ Modificar' if self.edit_mode else '✨ Añadir'} — {table_name}")
         self.top.geometry("520x640")
         self.top.configure(bg="#ffffff")
         self.top.grab_set()
@@ -225,8 +237,10 @@ class AddWindow:
         self.columns_info = columns_info
         self.on_success   = on_success
         self.entries      = {}
+        self.edit_data    = edit_data
 
-        tk.Label(self.top, text=f"Nuevo registro en {table_name}",
+        title_text = f"Modificar registro en {table_name}" if self.edit_mode else f"Nuevo registro en {table_name}"
+        tk.Label(self.top, text=title_text,
                  font=("Segoe UI", 13, "bold"), bg="#ffffff", fg="#0d6efd").pack(pady=12)
         tk.Label(self.top, text="Campos obligatorios marcados con  (*)",
                  font=("Segoe UI", 8, "italic"), bg="#ffffff", fg="#888").pack()
@@ -266,44 +280,67 @@ class AddWindow:
         widget = None
         key    = col_name.upper()
         is_pk  = col.get("is_pk", False)
+        
+        # Valor actual si estamos editando
+        current_val = None
+        if self.edit_mode:
+            col_idx = [c["name"] for c in self.columns_info].index(col_name)
+            current_val = self.edit_data[col_idx]
 
         # 1. Enum conocido del dominio
         if key in ENUM_MAP:
-            w = ttk.Combobox(row, values=ENUM_MAP[key], state="readonly", font=("Segoe UI", 9))
-            w.current(0)
+            vals = ENUM_MAP[key]
+            w = ttk.Combobox(row, values=vals, state="readonly", font=("Segoe UI", 9))
+            if self.edit_mode and current_val in vals:
+                w.set(current_val)
+            else:
+                w.current(0)
             widget = w
 
-        # 2. FK con datos de BD — solo si NO es PK de esta tabla
+        # 2. FK con datos de BD
         elif key in FK_COMBO_QUERY and not is_pk:
             data = fetch_combo(FK_COMBO_QUERY[key])
             w = ttk.Combobox(row, values=data, state="readonly", font=("Segoe UI", 9))
-            if data:
+            if self.edit_mode and current_val and current_val != "—":
+                # Buscar en data el que empiece por el ID de current_val
+                # current_val suele ser el ID en el Treeview si es FK
+                match = [d for d in data if d.startswith(str(current_val) + " - ")]
+                if match: w.set(match[0])
+                else: w.set(current_val)
+            elif data:
                 w.current(0)
             widget = w
 
         # 3. BLOB (imagen)
         elif col_type == "BLOB":
             sv = tk.StringVar(value="")
-            btn = ttk.Button(row, text="📁 Buscar imagen…",
+            lbl_text = "🖼️ [Imagen actual]" if (self.edit_mode and current_val and current_val != "—") else ""
+            btn = ttk.Button(row, text="📁 Cambiar imagen…" if self.edit_mode else "📁 Buscar imagen…",
                              command=lambda v=sv: v.set(
                                  filedialog.askopenfilename(
                                      title="Seleccionar imagen",
                                      filetypes=[("Imágenes", "*.png *.jpg *.jpeg *.gif")])))
             btn.pack(side=tk.LEFT, padx=4)
-            tk.Label(row, textvariable=sv, font=("Segoe UI", 8, "italic"),
+            tk.Label(row, textvariable=sv if not sv.get() else sv, text=lbl_text if not sv.get() else "",
+                     font=("Segoe UI", 8, "italic"),
                      bg="#ffffff", fg="#555", anchor="w").pack(side=tk.LEFT, fill=tk.X, expand=True)
             self.entries[col_name] = sv
-            return  # ya configurado
+            return
 
         # 4. Fecha
         elif col_type in ("DATE", "TIMESTAMP(6)"):
             w = ttk.Entry(row, font=("Segoe UI", 9))
-            w.insert(0, "DD/MM/YYYY")
+            if self.edit_mode and current_val and current_val != "—":
+                w.insert(0, current_val)
+            else:
+                w.insert(0, "DD/MM/YYYY")
             widget = w
 
         # 5. Campo genérico
         else:
             w = ttk.Entry(row, font=("Segoe UI", 9))
+            if self.edit_mode and current_val and current_val != "—":
+                w.insert(0, current_val)
             widget = w
 
         widget.pack(side=tk.LEFT, fill=tk.X, expand=True)
@@ -378,13 +415,48 @@ class AddWindow:
             vals.append(val)
 
         try:
-            ph = [f"TO_DATE(:{i+1}, 'DD/MM/YYYY')" if c["type"] in ("DATE", "TIMESTAMP(6)") and vals[i] is not None else f":{i+1}" 
-                  for i, c in enumerate(self.columns_info)]
-            cols_str = ", ".join(c["name"] for c in self.columns_info)
-            sql = f"INSERT INTO {self.table_name} ({cols_str}) VALUES ({', '.join(ph)})"
-            
-            db.run_query(sql, vals, commit=True)
-            messagebox.showinfo("Exito", "Registro añadido correctamente.")
+            if not self.edit_mode:
+                # MODO INSERT
+                ph = [f"TO_DATE(:{i+1}, 'DD/MM/YYYY')" if c["type"] in ("DATE", "TIMESTAMP(6)") and vals[i] is not None else f":{i+1}" 
+                      for i, c in enumerate(self.columns_info)]
+                cols_str = ", ".join(c["name"] for c in self.columns_info)
+                sql = f"INSERT INTO {self.table_name} ({cols_str}) VALUES ({', '.join(ph)})"
+                db.run_query(sql, vals, commit=True)
+                messagebox.showinfo("Exito", "Registro añadido correctamente.")
+            else:
+                # MODO UPDATE
+                # Necesitamos identificar las PKs para el WHERE
+                pk_names = [c["name"] for c in self.columns_info if c.get("is_pk")]
+                if not pk_names: pk_names = [self.columns_info[0]["name"]] # Fallback
+                
+                set_parts = []
+                final_vals = []
+                idx = 1
+                for i, c in enumerate(self.columns_info):
+                    # Solo actualizamos columnas que NO son PK o si el usuario quiere (pero es peligroso)
+                    # En este caso actualizamos todas excepto las PK del WHERE
+                    col_name = c["name"]
+                    if col_name in pk_names: continue
+                    
+                    if c["type"] in ("DATE", "TIMESTAMP(6)") and vals[i] is not None:
+                        set_parts.append(f"{col_name} = TO_DATE(:{idx}, 'DD/MM/YYYY')")
+                    else:
+                        set_parts.append(f"{col_name} = :{idx}")
+                    final_vals.append(vals[i])
+                    idx += 1
+                
+                where_parts = []
+                for pk in pk_names:
+                    col_idx = [c["name"] for c in self.columns_info].index(pk)
+                    where_parts.append(f"{pk} = :{idx}")
+                    # Usamos el valor original de la PK que vino en edit_data
+                    final_vals.append(self.edit_data[col_idx])
+                    idx += 1
+                
+                sql = f"UPDATE {self.table_name} SET {', '.join(set_parts)} WHERE {' AND '.join(where_parts)}"
+                db.run_query(sql, final_vals, commit=True)
+                messagebox.showinfo("Exito", "Registro actualizado correctamente.")
+
             self.on_success()
             self.top.destroy()
         except Exception as e:
