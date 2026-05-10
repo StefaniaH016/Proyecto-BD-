@@ -129,7 +129,7 @@ class ReportsWindow:
         # Botón Ejecutar (Vista en tabla)
         tk.Button(ctrl, text="▶ Ejecutar", font=("Segoe UI", 9, "bold"),
                   bg="#6f42c1", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
-                  command=lambda t=tree: self._run(t, sql, params_fn())).pack(side=tk.RIGHT, padx=6)
+                  command=lambda t=tree, s=sql: self._run(t, s() if callable(s) else s, params_fn())).pack(side=tk.RIGHT, padx=6)
         
         # Botón PDF (Exportación)
         tk.Button(ctrl, text="📄 Exportar PDF", font=("Segoe UI", 9),
@@ -139,12 +139,12 @@ class ReportsWindow:
     def _export_pdf(self, title, sql, params_fn):
         """Ejecuta la consulta con Pandas y genera el PDF."""
         params = params_fn()
+        if params is None: return
+        query = sql() if callable(sql) else sql
         conn = db.get_connection()
         if not conn: return
         try:
-            # Reemplazar placeholders :1, :2... por :idx para pandas si fuera necesario, 
-            # pero oracledb + pandas suelen manejar bien los posicionales.
-            df = pd.read_sql(sql, conn, params=params)
+            df = pd.read_sql(query, conn, params=params)
             generar_pdf_reporte(title, df, self.root)
         except Exception as e:
             messagebox.showerror("Error de Datos", f"No se pudieron obtener los datos para el PDF: {e}")
@@ -277,22 +277,22 @@ class ReportsWindow:
         ctrl, tree = self._section(frame,
             "R2 · Jugadores filtrados por peso, estatura y equipo")
 
-        tk.Label(ctrl, text="Peso min:", bg="#ffffff").pack(side=tk.LEFT)
-        e_pmin = ttk.Entry(ctrl, width=5); e_pmin.insert(0,"50"); e_pmin.pack(side=tk.LEFT, padx=2)
+        tk.Label(ctrl, text="Peso min (kg):", bg="#ffffff").pack(side=tk.LEFT)
+        e_pmin = ttk.Entry(ctrl, width=5); e_pmin.insert(0,"65"); e_pmin.pack(side=tk.LEFT, padx=2)
         tk.Label(ctrl, text="max:", bg="#ffffff").pack(side=tk.LEFT)
-        e_pmax = ttk.Entry(ctrl, width=5); e_pmax.insert(0,"120"); e_pmax.pack(side=tk.LEFT, padx=(2,10))
+        e_pmax = ttk.Entry(ctrl, width=5); e_pmax.insert(0,"85"); e_pmax.pack(side=tk.LEFT, padx=(2,10))
 
-        tk.Label(ctrl, text="Est. min:", bg="#ffffff").pack(side=tk.LEFT)
-        e_emin = ttk.Entry(ctrl, width=5); e_emin.insert(0,"1.50"); e_emin.pack(side=tk.LEFT, padx=2)
+        tk.Label(ctrl, text="Est. min (m):", bg="#ffffff").pack(side=tk.LEFT)
+        e_emin = ttk.Entry(ctrl, width=5); e_emin.insert(0,"1.70"); e_emin.pack(side=tk.LEFT, padx=2)
         tk.Label(ctrl, text="max:", bg="#ffffff").pack(side=tk.LEFT)
-        e_emax = ttk.Entry(ctrl, width=5); e_emax.insert(0,"2.20"); e_emax.pack(side=tk.LEFT, padx=(2,10))
+        e_emax = ttk.Entry(ctrl, width=5); e_emax.insert(0,"1.85"); e_emax.pack(side=tk.LEFT, padx=(2,10))
 
         equipos = self._combo_from_db("SELECT codigo_seleccion, nombre FROM Seleccion ORDER BY nombre")
         tk.Label(ctrl, text="Equipo:", bg="#ffffff").pack(side=tk.LEFT)
         cb_eq = ttk.Combobox(ctrl, values=["Todos"] + equipos, state="readonly", width=20)
         cb_eq.current(0); cb_eq.pack(side=tk.LEFT, padx=6)
 
-        sql_all  = """
+        sql_all = """
             SELECT P.NOMBRE, S.NOMBRE AS EQUIPO,
                    J.PESO, J.ESTATURA, J.VALOR,
                    NVL(POS.NOMBRE, 'Sin definir') AS POSICION
@@ -303,36 +303,28 @@ class ReportsWindow:
             WHERE J.PESO BETWEEN :1 AND :2
               AND J.ESTATURA BETWEEN :3 AND :4
             ORDER BY J.VALOR DESC"""
-        sql_eq   = sql_all.replace("ORDER BY", "AND S.CODIGO_SELECCION = :5 ORDER BY")
 
-        def run_r2(t=tree):
+        sql_eq = sql_all.replace("ORDER BY", "AND S.CODIGO_SELECCION = :5 ORDER BY")
+
+        def params_r2():
             try:
                 pm, px = float(e_pmin.get()), float(e_pmax.get())
                 em, ex = float(e_emin.get()), float(e_emax.get())
             except ValueError:
-                messagebox.showwarning("Valores", "Ingrese números válidos."); return
+                messagebox.showwarning("Valores", "Ingrese números válidos."); return None
             
             eq_val = cb_eq.get()
             print(f"[DEBUG R2] Filtros: Peso {pm}-{px}, Estatura {em}-{ex}, Equipo: {eq_val}")
             
             if eq_val == "Todos":
-                self._run(t, sql_all, (pm, px, em, ex))
+                return (pm, px, em, ex)
             else:
-                eq_id = eq_val.split(" - ")[0]
-                self._run(t, sql_eq, (pm, px, em, ex, eq_id))
+                return (pm, px, em, ex, eq_val.split(" - ")[0])
 
-        tk.Button(ctrl, text="▶ Ejecutar", font=("Segoe UI", 9, "bold"),
-                  bg="#6f42c1", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
-                  command=run_r2).pack(side=tk.RIGHT, padx=6)
-        
-        tk.Button(ctrl, text="📄 Exportar PDF", font=("Segoe UI", 9),
-                  bg="#28a745", fg="white", bd=0, padx=10, pady=4, cursor="hand2",
-                  command=lambda: self._export_pdf("Jugadores por Físico", 
-                                                   sql_eq if cb_eq.get() != "Todos" else sql_all,
-                                                   lambda: (float(e_pmin.get()), float(e_pmax.get()), 
-                                                            float(e_emin.get()), float(e_emax.get())) + 
-                                                           ((cb_eq.get().split(" - ")[0],) if cb_eq.get() != "Todos" else ())
-                                                  )).pack(side=tk.RIGHT, padx=6)
+        def sql_r2():
+            return sql_eq if cb_eq.get() != "Todos" else sql_all
+
+        self._exec_btn(ctrl, tree, sql_r2, params_r2, "Jugadores por Físico")
 
         # ─ R3: Valor total de plantilla por confederación ────────
         ctrl, tree = self._section(frame,
@@ -344,11 +336,12 @@ class ReportsWindow:
         cb_conf.pack(side=tk.LEFT, padx=6)
         sql = """
             SELECT s.nombre AS equipo,
-                   NVL(SUM(j.valor),0) AS valor_total_USD
+                   SUM(j.valor) AS valor_total_USD
             FROM Seleccion s
-            LEFT JOIN Jugador j ON j.codigo_seleccion = s.codigo_seleccion
+            JOIN Jugador j ON j.codigo_seleccion = s.codigo_seleccion
             WHERE s.codigo_confederacion = :1
             GROUP BY s.nombre
+            HAVING SUM(j.valor) > 0
             ORDER BY valor_total_USD DESC
         """
         self._exec_btn(ctrl, tree, sql,
