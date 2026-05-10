@@ -8,7 +8,7 @@ import os
 
 DSN  = "localhost/xe"
 USER = "SYSTEM"
-PWD  = "ORLO"
+PWD  = "oracle2313"
 
 # Ruta al archivo SQL
 SQL_FILE = os.path.join(os.path.dirname(__file__), 'schema.sql')
