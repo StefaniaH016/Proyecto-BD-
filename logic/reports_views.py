@@ -192,7 +192,7 @@ class ReportsWindow:
                 SELECT s.codigo_seleccion, s.nombre AS equipo,
                        NVL(SUM(j.valor),0) AS valor_total
                 FROM Seleccion s
-                LEFT JOIN Jugador j ON j.codigo_seleccion = s.codigo_seleccion
+                JOIN Jugador j ON j.codigo_seleccion = s.codigo_seleccion
                 GROUP BY s.codigo_seleccion, s.nombre
             ),
             por_pais AS (
@@ -204,6 +204,7 @@ class ReportsWindow:
                 JOIN Pais       pa ON ci.codigo_pais       = pa.codigo_pais
                 JOIN costo      co ON dps.codigo_seleccion = co.codigo_seleccion
                 WHERE pa.nombre IN ('México','USA','Canadá')
+                  AND p.codigo_grupo IS NOT NULL
             )
             SELECT pp.pais AS pais_anfitrion,
                    pp.equipo AS equipo_mas_costoso,
