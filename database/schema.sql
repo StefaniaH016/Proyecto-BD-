@@ -2,6 +2,21 @@
 -- SISTEMA MUNDIAL DE FÚTBOL 2026 - ESQUEMA COMPLETO
 -- ============================================================
 
+-- LIMPIEZA: Borrar tablas en orden para evitar conflictos de FK
+DROP TABLE Participacion CASCADE CONSTRAINTS;
+DROP TABLE Director_Tecnico CASCADE CONSTRAINTS;
+DROP TABLE Jugador CASCADE CONSTRAINTS;
+DROP TABLE Persona CASCADE CONSTRAINTS;
+DROP TABLE Partido CASCADE CONSTRAINTS;
+DROP TABLE Bitacora CASCADE CONSTRAINTS;
+DROP TABLE Seleccion CASCADE CONSTRAINTS;
+DROP TABLE Grupo CASCADE CONSTRAINTS;
+DROP TABLE Estadio CASCADE CONSTRAINTS;
+DROP TABLE Usuario CASCADE CONSTRAINTS;
+DROP TABLE Posicion CASCADE CONSTRAINTS;
+DROP TABLE Confederacion CASCADE CONSTRAINTS;
+DROP TABLE Ciudad CASCADE CONSTRAINTS;
+
 -- NIVEL 0: Tablas sin dependencias
 CREATE TABLE Ciudad (
     codigo   NUMBER PRIMARY KEY,
@@ -176,5 +191,65 @@ INSERT INTO Estadio VALUES (11, 'Estadio Azteca',             87523, 11);
 INSERT INTO Estadio VALUES (12, 'Estadio BBVA',               53500, 12);
 INSERT INTO Estadio VALUES (13, 'BMO Field',                  30000, 13);
 INSERT INTO Estadio VALUES (14, 'BC Place',                   54500, 14);
+
+-- Selecciones de ejemplo
+INSERT INTO Seleccion (codigo,nombre,descripcion,cod_confederacion,cod_grupo) VALUES (1,'Argentina','La Albiceleste',1,3);
+INSERT INTO Seleccion (codigo,nombre,descripcion,cod_confederacion,cod_grupo) VALUES (2,'Francia','Les Bleus',2,4);
+INSERT INTO Seleccion (codigo,nombre,descripcion,cod_confederacion,cod_grupo) VALUES (3,'México','El Tri',3,3);
+INSERT INTO Seleccion (codigo,nombre,descripcion,cod_confederacion,cod_grupo) VALUES (4,'Brasil','A Seleção',1,1);
+INSERT INTO Seleccion (codigo,nombre,descripcion,cod_confederacion,cod_grupo) VALUES (5,'Alemania','Die Mannschaft',2,1);
+INSERT INTO Seleccion (codigo,nombre,descripcion,cod_confederacion,cod_grupo) VALUES (6,'USA','The Stars and Stripes',3,2);
+
+-- Partidos de ejemplo
+INSERT INTO Partido VALUES (1, 'Fase de Grupos', TO_DATE('11/06/2026','DD/MM/YYYY'), '18:00', 11);
+INSERT INTO Partido VALUES (2, 'Fase de Grupos', TO_DATE('12/06/2026','DD/MM/YYYY'), '15:00', 1);
+INSERT INTO Partido VALUES (3, 'Fase de Grupos', TO_DATE('13/06/2026','DD/MM/YYYY'), '12:00', 4);
+INSERT INTO Partido VALUES (4, 'Final',          TO_DATE('19/07/2026','DD/MM/YYYY'), '17:00', 1);
+
+-- Personas: Jugadores de Argentina
+INSERT INTO Persona VALUES (1, 'Lionel Messi',      'Argentina', TO_DATE('24/06/1987','DD/MM/YYYY'), 'JUGADOR', 1);
+INSERT INTO Persona VALUES (2, 'Emiliano Martínez', 'Argentina', TO_DATE('02/09/1992','DD/MM/YYYY'), 'JUGADOR', 1);
+INSERT INTO Persona VALUES (3, 'Rodrigo De Paul',   'Argentina', TO_DATE('24/05/1994','DD/MM/YYYY'), 'JUGADOR', 1);
+
+-- Personas: Jugadores de Francia
+INSERT INTO Persona VALUES (4, 'Kylian Mbappé',     'Francia',   TO_DATE('20/12/1998','DD/MM/YYYY'), 'JUGADOR', 2);
+INSERT INTO Persona VALUES (5, 'Antoine Griezmann', 'Francia',   TO_DATE('21/03/1991','DD/MM/YYYY'), 'JUGADOR', 2);
+
+-- Personas: Jugadores de México
+INSERT INTO Persona VALUES (6, 'Guillermo Ochoa',   'México',    TO_DATE('13/07/1985','DD/MM/YYYY'), 'JUGADOR', 3);
+INSERT INTO Persona VALUES (7, 'Hirving Lozano',    'México',    TO_DATE('30/07/1995','DD/MM/YYYY'), 'JUGADOR', 3);
+
+-- Personas: Jugadores de USA
+INSERT INTO Persona VALUES (8, 'Christian Pulisic', 'USA',       TO_DATE('18/09/1998','DD/MM/YYYY'), 'JUGADOR', 6);
+INSERT INTO Persona VALUES (9, 'Tyler Adams',       'USA',       TO_DATE('27/02/1999','DD/MM/YYYY'), 'JUGADOR', 6);
+
+-- Directores Técnicos
+INSERT INTO Persona VALUES (10,'Lionel Scaloni',    'Argentina', TO_DATE('16/05/1978','DD/MM/YYYY'), 'DIRECTOR_TECNICO', 1);
+INSERT INTO Persona VALUES (11,'Didier Deschamps',  'Francia',   TO_DATE('15/10/1968','DD/MM/YYYY'), 'DIRECTOR_TECNICO', 2);
+INSERT INTO Persona VALUES (12,'Javier Aguirre',    'México',    TO_DATE('01/12/1958','DD/MM/YYYY'), 'DIRECTOR_TECNICO', 3);
+
+-- Datos de Jugadores
+INSERT INTO Jugador VALUES (1, 1.70, 72,  50000000, 4);
+INSERT INTO Jugador VALUES (2, 1.95, 88,  30000000, 1);
+INSERT INTO Jugador VALUES (3, 1.80, 79,  40000000, 3);
+INSERT INTO Jugador VALUES (4, 1.78, 73, 180000000, 4);
+INSERT INTO Jugador VALUES (5, 1.76, 72,  70000000, 4);
+INSERT INTO Jugador VALUES (6, 1.83, 78,  10000000, 1);
+INSERT INTO Jugador VALUES (7, 1.73, 70,  35000000, 4);
+INSERT INTO Jugador VALUES (8, 1.77, 76,  65000000, 4);
+INSERT INTO Jugador VALUES (9, 1.75, 68,  25000000, 3);
+
+-- Datos de Directores Técnicos
+INSERT INTO Director_Tecnico VALUES (10, 7,  'Licencia PRO FIFA');
+INSERT INTO Director_Tecnico VALUES (11, 15, 'Licencia PRO UEFA');
+INSERT INTO Director_Tecnico VALUES (12, 12, 'Licencia PRO CONCACAF');
+
+-- Participaciones
+INSERT INTO Participacion VALUES (1, 1, 2);
+INSERT INTO Participacion VALUES (3, 1, 0);
+INSERT INTO Participacion VALUES (4, 2, 1);
+INSERT INTO Participacion VALUES (5, 2, 1);
+INSERT INTO Participacion VALUES (1, 4, 3);
+INSERT INTO Participacion VALUES (2, 4, 3);
 
 COMMIT;

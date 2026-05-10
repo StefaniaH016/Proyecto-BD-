@@ -4,9 +4,9 @@ from database import db
 import pandas as pd
 from logic.pdf_generator import generar_pdf_reporte
 
-# =============================================================================
-# Módulo de Consultas y Reportes — Cumple exactamente el enunciado del proyecto
-# =============================================================================
+# =================================
+# Módulo de Consultas y Reportes
+# =================================
 class ReportsWindow:
     def __init__(self, root):
         self.root = root
