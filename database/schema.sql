@@ -153,15 +153,19 @@ CREATE TABLE Detalles_Partido_Seleccion (
 );
 
 -- ============================================================
--- DATOS INICIALES
+-- DATOS 
 -- ============================================================
 
--- Usuarios del sistema
+-- ============================================================
+-- USUARIOS DEL SISTEMA 
+-- ============================================================
 INSERT INTO Usuario VALUES (1, 'admin',    'admin123',    'ADMINISTRADOR');
 INSERT INTO Usuario VALUES (2, 'user',     'user123',     'TRADICIONAL');
 INSERT INTO Usuario VALUES (3, 'invitado', 'invitado123', 'ESPORADICO');
 
--- Confederaciones (las 6 oficiales de la FIFA)
+-- ============================================================
+-- CONFEDERACIONES 
+-- ============================================================
 INSERT INTO Confederacion VALUES (1, 'CONMEBOL');
 INSERT INTO Confederacion VALUES (2, 'UEFA');
 INSERT INTO Confederacion VALUES (3, 'CONCACAF');
@@ -169,13 +173,17 @@ INSERT INTO Confederacion VALUES (4, 'CAF');
 INSERT INTO Confederacion VALUES (5, 'AFC');
 INSERT INTO Confederacion VALUES (6, 'OFC');
 
--- Posiciones
+-- ============================================================
+-- POSICIONES
+-- ============================================================
 INSERT INTO Posicion VALUES (1, 'Portero');
 INSERT INTO Posicion VALUES (2, 'Defensa');
 INSERT INTO Posicion VALUES (3, 'Centrocampista');
 INSERT INTO Posicion VALUES (4, 'Delantero');
 
--- 12 Grupos del Mundial 2026
+-- ============================================================
+-- 12 GRUPOS DEL MUNDIAL 2026
+-- ============================================================
 INSERT INTO Grupo VALUES (1,  'A');
 INSERT INTO Grupo VALUES (2,  'B');
 INSERT INTO Grupo VALUES (3,  'C');
@@ -189,16 +197,56 @@ INSERT INTO Grupo VALUES (10, 'J');
 INSERT INTO Grupo VALUES (11, 'K');
 INSERT INTO Grupo VALUES (12, 'L');
 
--- Países (anfitriones + países de las selecciones de ejemplo)
-INSERT INTO Pais VALUES (1, 'USA');
-INSERT INTO Pais VALUES (2, 'México');
-INSERT INTO Pais VALUES (3, 'Canadá');
-INSERT INTO Pais VALUES (4, 'Argentina');
-INSERT INTO Pais VALUES (5, 'Francia');
-INSERT INTO Pais VALUES (6, 'Brasil');
-INSERT INTO Pais VALUES (7, 'Alemania');
+-- ============================================================
+-- PAÍSES
+-- ============================================================
+INSERT INTO Pais VALUES (1,  'USA');
+INSERT INTO Pais VALUES (2,  'México');
+INSERT INTO Pais VALUES (3,  'Canadá');
+INSERT INTO Pais VALUES (4,  'Argentina');
+INSERT INTO Pais VALUES (5,  'Francia');
+INSERT INTO Pais VALUES (6,  'Brasil');
+INSERT INTO Pais VALUES (7,  'Alemania');
+INSERT INTO Pais VALUES (8,  'España');
+INSERT INTO Pais VALUES (9,  'Inglaterra');
+INSERT INTO Pais VALUES (10, 'Portugal');
+INSERT INTO Pais VALUES (11, 'Colombia');
+INSERT INTO Pais VALUES (12, 'Uruguay');
+INSERT INTO Pais VALUES (13, 'Ecuador');
+INSERT INTO Pais VALUES (14, 'Paraguay');
+INSERT INTO Pais VALUES (15, 'Marruecos');
+INSERT INTO Pais VALUES (16, 'Japón');
+INSERT INTO Pais VALUES (17, 'Corea del Sur');
+INSERT INTO Pais VALUES (18, 'Australia');
+INSERT INTO Pais VALUES (19, 'Suiza');
+INSERT INTO Pais VALUES (20, 'Croacia');
+INSERT INTO Pais VALUES (21, 'Países Bajos');
+INSERT INTO Pais VALUES (22, 'Bélgica');
+INSERT INTO Pais VALUES (23, 'Noruega');
+INSERT INTO Pais VALUES (24, 'Austria');
+INSERT INTO Pais VALUES (25, 'Senegal');
+INSERT INTO Pais VALUES (26, 'Irán');
+INSERT INTO Pais VALUES (27, 'Uzbekistán');
+INSERT INTO Pais VALUES (28, 'Jordania');
+INSERT INTO Pais VALUES (29, 'Ghana');
+INSERT INTO Pais VALUES (30, 'Panamá');
+INSERT INTO Pais VALUES (31, 'Haití');
+INSERT INTO Pais VALUES (32, 'Curazao');
+INSERT INTO Pais VALUES (33, 'Túnez');
+INSERT INTO Pais VALUES (34, 'Argelia');
+INSERT INTO Pais VALUES (35, 'Egipto');
+INSERT INTO Pais VALUES (36, 'Cabo Verde');
+INSERT INTO Pais VALUES (37, 'Sudáfrica');
+INSERT INTO Pais VALUES (38, 'Qatar');
+INSERT INTO Pais VALUES (39, 'Arabia Saudita');
+INSERT INTO Pais VALUES (40, 'Nueva Zelanda');
+INSERT INTO Pais VALUES (41, 'Escocia');
+INSERT INTO Pais VALUES (42, 'Costa de Marfil');
+INSERT INTO Pais VALUES (43, 'Bélgica');
 
--- Ciudades anfitrionas (referenciando código de país)
+-- ============================================================
+-- CIUDADES ANFITRIONAS 
+-- ============================================================
 INSERT INTO Ciudad VALUES (1,  'Nueva York/NJ',    1);
 INSERT INTO Ciudad VALUES (2,  'Los Ángeles',      1);
 INSERT INTO Ciudad VALUES (3,  'Miami',            1);
@@ -214,7 +262,9 @@ INSERT INTO Ciudad VALUES (12, 'Monterrey',        2);
 INSERT INTO Ciudad VALUES (13, 'Toronto',          3);
 INSERT INTO Ciudad VALUES (14, 'Vancouver',        3);
 
--- Estadios (14 sedes del Mundial 2026)
+-- ============================================================
+-- ESTADIOS 
+-- ============================================================
 INSERT INTO Estadio VALUES (1,  'MetLife Stadium',       82500, 1);
 INSERT INTO Estadio VALUES (2,  'SoFi Stadium',          70240, 2);
 INSERT INTO Estadio VALUES (3,  'Hard Rock Stadium',     65000, 3);
@@ -230,56 +280,244 @@ INSERT INTO Estadio VALUES (12, 'Estadio BBVA',          53500, 12);
 INSERT INTO Estadio VALUES (13, 'BMO Field',             30000, 13);
 INSERT INTO Estadio VALUES (14, 'BC Place',              54500, 14);
 
--- Selecciones de ejemplo
-INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion) VALUES (1, 'Argentina', 'La Albiceleste',        3, 4, 1);
-INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion) VALUES (2, 'Francia',   'Les Bleus',             4, 5, 2);
-INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion) VALUES (3, 'México',    'El Tri',                3, 2, 3);
-INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion) VALUES (4, 'Brasil',    'A Seleção',             1, 6, 1);
-INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion) VALUES (5, 'Alemania',  'Die Mannschaft',        1, 7, 2);
-INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion) VALUES (6, 'USA',       'The Stars and Stripes', 2, 1, 3);
+-- ============================================================
+-- SELECCIONES
+--   A(1): México, Sudáfrica, Corea del Sur, Repechaje Europa D
+--   B(2): Canadá, Qatar, Suiza, Uno UEFA
+--   C(3): Brasil, Marruecos, Escocia, Haití
+--   D(4): EE.UU, Paraguay, Australia, Uno UEFA
+--   E(5): Alemania, Curazao, Costa de Marfil, Ecuador
+--   F(6): Países Bajos, Túnez, Japón, Uno UEFA
+--   G(7): Bélgica, Irán, Egipto, Nueva Zelanda
+--   H(8): España, Cabo Verde, Arabia Saudí, Uruguay
+--   I(9): Francia, Senegal, Noruega, Uno intercont
+--   J(10): Argentina, Argelia, Austria, Jordania
+--   K(11): Portugal, Colombia, Uzbekistán, Uno intercont
+--   L(12): Inglaterra, Croacia, Ghana, Panamá
+-- ============================================================
 
--- Partidos de ejemplo
-INSERT INTO Partido VALUES (1, TO_DATE('11/06/2026','DD/MM/YYYY'), '18:00', 11, 3);
-INSERT INTO Partido VALUES (2, TO_DATE('12/06/2026','DD/MM/YYYY'), '15:00',  1, 1);
-INSERT INTO Partido VALUES (3, TO_DATE('13/06/2026','DD/MM/YYYY'), '12:00',  4, 1);
-INSERT INTO Partido VALUES (4, TO_DATE('19/07/2026','DD/MM/YYYY'), '17:00',  1, NULL);
+-- GRUPO A (codigo_grupo = 1)
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (3,  'México',       'El Tri',                  1,  2,  3);   -- E03, 1845 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (23, 'Sudáfrica',    'Bafana Bafana',           1,  37, 4);   -- E23, 1532 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (7,  'Corea del Sur','Tigres del Asia',         1,  17, 5);   -- E07, 1783 pts
 
--- Personas
-INSERT INTO Persona VALUES (1,  'Lionel Messi',      'Argentina', TO_DATE('24/06/1987','DD/MM/YYYY'));
-INSERT INTO Persona VALUES (2,  'Emiliano Martínez', 'Argentina', TO_DATE('02/09/1992','DD/MM/YYYY'));
-INSERT INTO Persona VALUES (3,  'Rodrigo De Paul',   'Argentina', TO_DATE('24/05/1994','DD/MM/YYYY'));
-INSERT INTO Persona VALUES (4,  'Kylian Mbappé',     'Francia',   TO_DATE('20/12/1998','DD/MM/YYYY'));
-INSERT INTO Persona VALUES (5,  'Antoine Griezmann', 'Francia',   TO_DATE('21/03/1991','DD/MM/YYYY'));
-INSERT INTO Persona VALUES (6,  'Guillermo Ochoa',   'México',    TO_DATE('13/07/1985','DD/MM/YYYY'));
-INSERT INTO Persona VALUES (7,  'Hirving Lozano',    'México',    TO_DATE('30/07/1995','DD/MM/YYYY'));
-INSERT INTO Persona VALUES (8,  'Christian Pulisic', 'USA',       TO_DATE('18/09/1998','DD/MM/YYYY'));
-INSERT INTO Persona VALUES (9,  'Tyler Adams',       'USA',       TO_DATE('27/02/1999','DD/MM/YYYY'));
-INSERT INTO Persona VALUES (10, 'Lionel Scaloni',    'Argentina', TO_DATE('16/05/1978','DD/MM/YYYY'));
-INSERT INTO Persona VALUES (11, 'Didier Deschamps',  'Francia',   TO_DATE('15/10/1968','DD/MM/YYYY'));
-INSERT INTO Persona VALUES (12, 'Javier Aguirre',    'México',    TO_DATE('01/12/1958','DD/MM/YYYY'));
+-- GRUPO B (codigo_grupo = 2)
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (1,  'Canadá',       'Les Rouges',              2,  3,  3);   -- E01, 1791 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (24, 'Qatar',        'Los Maroon',              2,  38, 5);   -- E24, 1487 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (35, 'Suiza',        'La Nati',                 2,  19, 2);   -- E35, 1897 pts
 
--- Jugadores (codigo_persona, estatura, peso, valor, codigo_seleccion, codigo_posicion)
-INSERT INTO Jugador VALUES (1, 1.70, 72,  50000000, 1, 4);
-INSERT INTO Jugador VALUES (2, 1.95, 88,  30000000, 1, 1);
-INSERT INTO Jugador VALUES (3, 1.80, 79,  40000000, 1, 3);
-INSERT INTO Jugador VALUES (4, 1.78, 73, 180000000, 2, 4);
-INSERT INTO Jugador VALUES (5, 1.76, 72,  70000000, 2, 4);
-INSERT INTO Jugador VALUES (6, 1.83, 78,  10000000, 3, 1);
-INSERT INTO Jugador VALUES (7, 1.73, 70,  35000000, 3, 4);
-INSERT INTO Jugador VALUES (8, 1.77, 76,  65000000, 6, 4);
-INSERT INTO Jugador VALUES (9, 1.75, 68,  25000000, 6, 3);
+-- GRUPO C (codigo_grupo = 3)
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (12, 'Brasil',       'A Seleção',               3,  6,  1);   -- E12, 1978 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (14, 'Marruecos',    'Los Leones del Atlas',    3,  15, 4);   -- E14, 1828 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (36, 'Escocia',      'The Tartan Army',         3,  41, 2);   -- E36, 1790 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (42, 'Haití',        'Les Grenadiers',          3,  31, 3);   -- E42, 1527 pts
 
--- Directores Técnicos (codigo_persona, experiencia, licencia, codigo_seleccion)
-INSERT INTO Director_Tecnico VALUES (10, 7,  'Licencia PRO',  1);
-INSERT INTO Director_Tecnico VALUES (11, 15, 'Licencia PRO',  2);
+-- GRUPO D (codigo_grupo = 4)
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (2,  'Estados Unidos','The Stars and Stripes',  4,  1,  3);   -- E02, 1723 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (17, 'Paraguay',     'La Albirroja',            4,  14, 1);   -- E17, 1821 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (9,  'Australia',    'Los Socceroos',           4,  18, 6);   -- E09, 1780 pts
+
+-- GRUPO E (codigo_grupo = 5)
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (33, 'Alemania',     'Die Mannschaft',          5,  7,  2);   -- E33, 1911 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (41, 'Curazao',      'Los Curazao',             5,  32, 3);   -- E41, 1457 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (26, 'Costa de Marfil','Los Elefantes',         5,  42, 4); -- E26, 1607 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (11, 'Ecuador',      'La Tri',                  5,  13, 1);   -- E11, 1929 pts
+
+-- GRUPO F (codigo_grupo = 6)
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (34, 'Países Bajos', 'Los Oranje',              6,  21, 2);   -- E34, 1959 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (15, 'Túnez',        'Los Aguiluchos de Cartago',6, 33, 4);  -- E15, 1650 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (4,  'Japón',        'Los Samurai Azul',        6,  16, 5);   -- E04, 1878 pts
+
+-- GRUPO G (codigo_grupo = 7)
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (39, 'Bélgica',      'Los Diablos Rojos',       7,  43, 2); -- E39, 1849 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (5,  'Irán',         'Los Guerreros Persas',    7,  26, 5);   -- E05, 1754 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (19, 'Egipto',       'Los Faraones',            7,  35, 4);   -- E19, 1644 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (13, 'Nueva Zelanda','Los All Whites',          7,  40, 6);   -- E13, 1590 pts
+
+-- GRUPO H (codigo_grupo = 8)
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (37, 'España',       'La Roja',                 8,  8,  2);   -- E37, 2172 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (22, 'Cabo Verde',   'Los Tubarões Azuis',      8,  36, 4);   -- E22, 1561 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (28, 'Arabia Saudita','Los Halcones Verdes',    8,  39, 5);   -- E28, 1578 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (18, 'Uruguay',      'La Celeste',              8,  12, 1);   -- E18, 1914 pts
+
+-- GRUPO I (codigo_grupo = 9)
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (29, 'Francia',      'Les Bleus',               9,  5,  2);   -- E29, 2063 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (27, 'Senegal',      'Los Leones de Teranga',   9,  25, 4);   -- E27, 1803 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (31, 'Noruega',      'Los Vikingos',            9,  23, 2);   -- E31, 1922 pts
+
+-- GRUPO J (codigo_grupo = 10)
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (10, 'Argentina',    'La Albiceleste',          10, 4,  1);   -- E10, 2113 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (20, 'Argelia',      'Los Zorros del Desierto', 10, 34, 4);   -- E20, 1719 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (38, 'Austria',      'Das Team',                10, 24, 2);   -- E38, 1818 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (8,  'Jordania',     'Los Nashama',             10, 28, 5);   -- E08, 1608 pts
+
+-- GRUPO K (codigo_grupo = 11)
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (30, 'Portugal',     'A Seleção das Quinas',    11, 10, 2);   -- E30, 1976 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (16, 'Colombia',     'Los Cafeteros',           11, 11, 1);   -- E16, 1991 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (6,  'Uzbekistán',   'Los Lobos Blancos',       11, 27, 5);   -- E06, 1734 pts
+
+-- GRUPO L (codigo_grupo = 12)
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (25, 'Inglaterra',   'Los Tres Leones',         12, 9,  2);   -- E25, 2042 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (32, 'Croacia',      'Los Vatreni',             12, 20, 2);   -- E32, 1933 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (21, 'Ghana',        'Las Estrellas Negras',    12, 29, 4);   -- E21, 1510 pts
+INSERT INTO Seleccion (codigo_seleccion, nombre, descripcion, codigo_grupo, codigo_pais, codigo_confederacion)
+  VALUES (40, 'Panamá',       'Los Canaleros',           12, 30, 3);   -- E40, 1738 pts
+
+-- ============================================================
+-- PARTIDOS
+-- ============================================================
+INSERT INTO Partido VALUES (1,  TO_DATE('11/06/2026','DD/MM/YYYY'), '21:00', 11, 1);  -- México vs Sudáfrica (Estadio Azteca)
+INSERT INTO Partido VALUES (2,  TO_DATE('11/06/2026','DD/MM/YYYY'), '04:00', 10, 1);  -- Corea del Sur vs Rep.Europa D (Akron)
+INSERT INTO Partido VALUES (3,  TO_DATE('18/06/2026','DD/MM/YYYY'), '18:00',  8, 1);  -- Sudáfrica vs Rep.Europa D (Atlanta)
+INSERT INTO Partido VALUES (4,  TO_DATE('19/06/2026','DD/MM/YYYY'), '03:00', 10, 1);  -- México vs Corea del Sur (Akron)
+INSERT INTO Partido VALUES (5,  TO_DATE('25/06/2026','DD/MM/YYYY'), '03:00', 11, 1);  -- México vs Rep.Europa D (Azteca)
+INSERT INTO Partido VALUES (6,  TO_DATE('25/06/2026','DD/MM/YYYY'), '03:00', 12, 1);  -- Sudáfrica vs Corea del Sur (BBVA)
+
+INSERT INTO Partido VALUES (7,  TO_DATE('12/06/2026','DD/MM/YYYY'), '21:00',  1, 2);  -- Canadá vs Uno UEFA
+INSERT INTO Partido VALUES (8,  TO_DATE('13/06/2026','DD/MM/YYYY'), '21:00',  1, 2);  -- Qatar vs Suiza
+INSERT INTO Partido VALUES (9,  TO_DATE('18/06/2026','DD/MM/YYYY'), '21:00',  1, 2);  -- Suiza vs Uno UEFA
+INSERT INTO Partido VALUES (10, TO_DATE('19/06/2026','DD/MM/YYYY'), '21:00',  1, 2);  -- Canadá vs Qatar
+INSERT INTO Partido VALUES (11, TO_DATE('24/06/2026','DD/MM/YYYY'), '21:00',  1, 2);  -- Uno UEFA vs Qatar
+INSERT INTO Partido VALUES (12, TO_DATE('24/06/2026','DD/MM/YYYY'), '21:00',  1, 2);  -- Suiza vs Canadá
+
+INSERT INTO Partido VALUES (13, TO_DATE('14/06/2026','DD/MM/YYYY'), '00:00',  1, 3);  -- Brasil vs Marruecos
+INSERT INTO Partido VALUES (14, TO_DATE('14/06/2026','DD/MM/YYYY'), '03:00',  1, 3);  -- Haití vs Escocia
+INSERT INTO Partido VALUES (15, TO_DATE('20/06/2026','DD/MM/YYYY'), '00:00',  1, 3);  -- Escocia vs Marruecos
+INSERT INTO Partido VALUES (16, TO_DATE('20/06/2026','DD/MM/YYYY'), '03:00',  1, 3);  -- Brasil vs Haití
+INSERT INTO Partido VALUES (17, TO_DATE('25/06/2026','DD/MM/YYYY'), '00:00',  1, 3);  -- Escocia vs Brasil
+INSERT INTO Partido VALUES (18, TO_DATE('25/06/2026','DD/MM/YYYY'), '00:00',  1, 3);  -- Marruecos vs Haití
+
+-- ============================================================
+-- PERSONAS 
+-- ============================================================
+INSERT INTO Persona VALUES (1,  'Lionel Messi',       'Argentina', TO_DATE('24/06/1987','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (2,  'Emiliano Martínez',  'Argentina', TO_DATE('02/09/1992','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (3,  'Rodrigo De Paul',    'Argentina', TO_DATE('24/05/1994','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (4,  'Kylian Mbappé',      'Francia',   TO_DATE('20/12/1998','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (5,  'Antoine Griezmann',  'Francia',   TO_DATE('21/03/1991','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (6,  'Guillermo Ochoa',    'México',    TO_DATE('13/07/1985','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (7,  'Hirving Lozano',     'México',    TO_DATE('30/07/1995','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (8,  'Christian Pulisic',  'USA',       TO_DATE('18/09/1998','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (9,  'Tyler Adams',        'USA',       TO_DATE('27/02/1999','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (10, 'Lionel Scaloni',     'Argentina', TO_DATE('16/05/1978','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (11, 'Didier Deschamps',   'Francia',   TO_DATE('15/10/1968','DD/MM/YYYY'));
+INSERT INTO Persona VALUES (12, 'Javier Aguirre',     'México',    TO_DATE('01/12/1958','DD/MM/YYYY'));
+
+-- ============================================================
+-- JUGADORES
+-- ============================================================
+INSERT INTO Jugador VALUES (1, 1.70, 72,  50000000, 10, 4);
+INSERT INTO Jugador VALUES (2, 1.95, 88,  30000000, 10, 1);
+INSERT INTO Jugador VALUES (3, 1.80, 79,  40000000, 10, 3);
+INSERT INTO Jugador VALUES (4, 1.78, 73, 180000000, 29, 4);
+INSERT INTO Jugador VALUES (5, 1.76, 72,  70000000, 29, 4);
+INSERT INTO Jugador VALUES (6, 1.83, 78,  10000000,  3, 1);
+INSERT INTO Jugador VALUES (7, 1.73, 70,  35000000,  3, 4);
+INSERT INTO Jugador VALUES (8, 1.77, 76,  65000000,  2, 4);
+INSERT INTO Jugador VALUES (9, 1.75, 68,  25000000,  2, 3);
+
+-- ============================================================
+-- DIRECTORES TÉCNICOS
+-- ============================================================
+INSERT INTO Director_Tecnico VALUES (10, 7,  'Licencia PRO', 10);
+INSERT INTO Director_Tecnico VALUES (11, 15, 'Licencia PRO', 29);
 INSERT INTO Director_Tecnico VALUES (12, 12, 'Licencia PRO',  3);
 
--- Detalles de partidos (codigo_seleccion, codigo_partido, goles_local, goles_visita)
-INSERT INTO Detalles_Partido_Seleccion VALUES (1, 1, 2, 0);
-INSERT INTO Detalles_Partido_Seleccion VALUES (3, 1, 0, 2);
-INSERT INTO Detalles_Partido_Seleccion VALUES (4, 2, 1, 1);
-INSERT INTO Detalles_Partido_Seleccion VALUES (5, 2, 1, 1);
-INSERT INTO Detalles_Partido_Seleccion VALUES (1, 4, 3, 3);
-INSERT INTO Detalles_Partido_Seleccion VALUES (2, 4, 3, 3);
+-- ============================================================
+-- DETALLES DE PARTIDOS con resultados 
+-- ============================================================
+
+-- Grupo A (partidos 1–6)
+-- Partido 1: México 0 - 1 Sudáfrica
+INSERT INTO Detalles_Partido_Seleccion VALUES (3,  1, 0, 1);
+INSERT INTO Detalles_Partido_Seleccion VALUES (23, 1, 1, 0);
+-- Partido 3: Sudáfrica 1 - 1 (Rep. Eur. D) -- Rep. no tiene seleccion definida, omitir visita
+INSERT INTO Detalles_Partido_Seleccion VALUES (23, 3, 1, 0);
+-- Partido 4: México 2 - 1 Corea del Sur
+INSERT INTO Detalles_Partido_Seleccion VALUES (3,  4, 2, 1);
+INSERT INTO Detalles_Partido_Seleccion VALUES (7,  4, 1, 2);
+-- Partido 5: México 1 - 0 (Rep. Eur. D) -- Solo local
+INSERT INTO Detalles_Partido_Seleccion VALUES (3,  5, 1, 0);
+-- Partido 6: Sudáfrica 1 - 1 Corea del Sur
+INSERT INTO Detalles_Partido_Seleccion VALUES (23, 6, 1, 1);
+INSERT INTO Detalles_Partido_Seleccion VALUES (7,  6, 1, 1);
+
+-- Grupo B (partidos 7–12)
+-- Partido 7: Canadá 1 - 1 Uno UEFA
+INSERT INTO Detalles_Partido_Seleccion VALUES (1, 7, 1, 1);
+-- Partido 8: Qatar 0 - 2 Suiza
+INSERT INTO Detalles_Partido_Seleccion VALUES (24, 8, 0, 2);
+INSERT INTO Detalles_Partido_Seleccion VALUES (35, 8, 2, 0);
+-- Partido 9: Suiza 1 - 0 Uno UEFA
+INSERT INTO Detalles_Partido_Seleccion VALUES (35, 9, 1, 0);
+-- Partido 10: Canadá 2 - 1 Qatar
+INSERT INTO Detalles_Partido_Seleccion VALUES (1,  10, 2, 1);
+INSERT INTO Detalles_Partido_Seleccion VALUES (24, 10, 1, 2);
+-- Partido 11: Uno UEFA 0 - 0 Qatar
+INSERT INTO Detalles_Partido_Seleccion VALUES (24, 11, 0, 0);
+-- Partido 12: Suiza 2 - 2 Canadá
+INSERT INTO Detalles_Partido_Seleccion VALUES (35, 12, 2, 2);
+INSERT INTO Detalles_Partido_Seleccion VALUES (1,  12, 2, 2);
+
+-- Grupo C (partidos 13–18)
+-- Partido 13: Brasil 2 - 1 Marruecos
+INSERT INTO Detalles_Partido_Seleccion VALUES (12, 13, 2, 1);
+INSERT INTO Detalles_Partido_Seleccion VALUES (14, 13, 1, 2);
+-- Partido 14: Haití 0 - 1 Escocia
+INSERT INTO Detalles_Partido_Seleccion VALUES (42, 14, 0, 1);
+INSERT INTO Detalles_Partido_Seleccion VALUES (36, 14, 1, 0);
+-- Partido 15: Escocia 1 - 1 Marruecos
+INSERT INTO Detalles_Partido_Seleccion VALUES (36, 15, 1, 1);
+INSERT INTO Detalles_Partido_Seleccion VALUES (14, 15, 1, 1);
+-- Partido 16: Brasil 3 - 1 Haití
+INSERT INTO Detalles_Partido_Seleccion VALUES (12, 16, 3, 1);
+INSERT INTO Detalles_Partido_Seleccion VALUES (42, 16, 1, 3);
+-- Partido 17: Escocia 1 - 3 Brasil
+INSERT INTO Detalles_Partido_Seleccion VALUES (36, 17, 1, 3);
+INSERT INTO Detalles_Partido_Seleccion VALUES (12, 17, 3, 1);
+-- Partido 18: Marruecos 2 - 1 Haití
+INSERT INTO Detalles_Partido_Seleccion VALUES (14, 18, 2, 1);
+INSERT INTO Detalles_Partido_Seleccion VALUES (42, 18, 1, 2);
 
 COMMIT;

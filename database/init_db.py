@@ -17,8 +17,8 @@ SQL_FILE = os.path.join(os.path.dirname(__file__), 'schema.sql')
 def parse_statements(sql_content):
     """
     Parsea el contenido SQL en sentencias individuales.
-    Acumula líneas hasta encontrar ';' al final de una línea,
-    ignorando líneas que solo son comentarios.
+    Acumula líneas hasta encontrar ';' (ignorando comentarios inline -- ...)
+    antes de decidir si la sentencia está completa.
     """
     statements = []
     current = []
@@ -32,9 +32,15 @@ def parse_statements(sql_content):
 
         current.append(line)
 
-        # Si la línea termina con ';', la sentencia está completa
-        if stripped.endswith(';'):
+        # Eliminar comentario inline (-- ...) para detectar correctamente el ';'
+        # Ej: "  VALUES (3, 'México');   -- comentario"  → termina en ';'
+        stripped_no_comment = re.sub(r"--[^\n]*$", "", stripped).strip()
+
+        # Si la línea (sin comentario) termina con ';', la sentencia está completa
+        if stripped_no_comment.endswith(';'):
             stmt = '\n'.join(current).strip()
+            # Quitar comentarios inline de cada línea antes de ejecutar
+            stmt = re.sub(r"--[^\n]*", "", stmt).strip()
             # Quitar el ';' final (Oracle cursor.execute no lo necesita)
             if stmt.endswith(';'):
                 stmt = stmt[:-1].strip()
