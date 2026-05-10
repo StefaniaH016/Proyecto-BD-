@@ -60,8 +60,8 @@ class LoginWindow:
 
         try:
             cur = conn.cursor()
-            cur.execute("""SELECT codigo, tipo_usuario FROM Usuario
-                           WHERE nombre_usuario = :1 AND contrasena = :2""",
+            cur.execute("""SELECT codigo_usuario, tipo_usuario FROM Usuario
+                           WHERE nombreUsuario = :1 AND contrasena = :2""",
                         (usuario, password))
             row = cur.fetchone()
 
@@ -72,14 +72,14 @@ class LoginWindow:
             cod_usuario, tipo_usuario = row
 
             # Registrar entrada en Bitácora
-            cur.execute("""INSERT INTO Bitacora (cod_usuario, fecha_entrada)
+            cur.execute("""INSERT INTO Bitacora (codigo_usuario, fechaHoraEntrada)
                            VALUES (:1, CURRENT_TIMESTAMP)""", (cod_usuario,))
             conn.commit()
 
             # Abrir ventana principal
             self.root.withdraw()
             win = tk.Toplevel(self.root)
-            app = MainWindow(win, cod_usuario, tipo_usuario)
+            app = MainWindow(win, cod_usuario, tipo_usuario, self.root)
 
             # Cuando el usuario cierre el MainWindow vía su botón,
             # sys.exit() ya se encarga; pero si usa la X del SO:
