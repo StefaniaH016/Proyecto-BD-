@@ -215,6 +215,9 @@ class GenericCRUD:
             elif code == 2290: # ORA-02290: CHECK constraint
                 messagebox.showerror("Valor invalido",
                     "El valor ingresado no cumple las restricciones del campo.")
+            elif code == 20001: # Error personalizado de Trigger (Unico Admin)
+                messagebox.showerror("Restriccion de Administrador", 
+                    "No se puede crear el usuario: Ya existe un administrador en el sistema y solo se permite uno.")
             else:
                 messagebox.showerror("Error BD", f"ORA-{code:05d}: {err.message.strip()}")
         else:

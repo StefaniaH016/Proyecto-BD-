@@ -559,3 +559,25 @@ INSERT INTO Detalles_Partido_Seleccion VALUES (25, 20, 3, 2);
 INSERT INTO Detalles_Partido_Seleccion VALUES (37, 20, 2, 3);
 
 COMMIT;
+
+-- ============================================================
+-- RESTRICCIONES DE NEGOCIO (TRIGGERS)
+-- ============================================================
+
+-- Garantizar un único administrador en el sistema
+CREATE OR REPLACE TRIGGER trg_unico_admin
+BEFORE INSERT OR UPDATE ON Usuario
+FOR EACH ROW
+DECLARE
+    v_count NUMBER;
+BEGIN
+    IF :NEW.tipo_usuario = 'ADMINISTRADOR' THEN
+        IF INSERTING OR (:OLD.tipo_usuario IS NULL OR :OLD.tipo_usuario != 'ADMINISTRADOR') THEN
+            SELECT count(*) INTO v_count FROM Usuario WHERE tipo_usuario = 'ADMINISTRADOR';
+            IF v_count > 0 THEN
+                RAISE_APPLICATION_ERROR(-20001, 'Ya existe un administrador en el sistema. Solo se permite uno.');
+            END IF;
+        END IF;
+    END IF;
+END;
+/
