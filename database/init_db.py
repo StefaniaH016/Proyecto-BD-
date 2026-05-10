@@ -9,50 +9,58 @@ import re
 
 DSN  = "localhost/xe"
 USER = "SYSTEM"
-PWD  = "oracle2313"
+PWD  = "ORLO"
 
+# Ruta al archivo SQL
 SQL_FILE = os.path.join(os.path.dirname(__file__), 'schema.sql')
 
 
 def parse_statements(sql_content):
     """
-    Parsea el contenido SQL en sentencias individuales.
-    Acumula líneas hasta encontrar ';' (ignorando comentarios inline -- ...)
-    antes de decidir si la sentencia está completa.
+    Parsea el contenido SQL en sentencias individuales de forma robusta.
+    Maneja comentarios, bloques PL/SQL (terminados en /) y sentencias estándar (;).
     """
+    import re
     statements = []
-    current = []
+    current_stmt = []
+    in_plsql = False
 
     for line in sql_content.splitlines():
-        stripped = line.strip()
-
-        # Ignorar líneas vacías o solo comentarios fuera de un bloque activo
-        if not stripped or stripped.startswith('--'):
+        # 1. Limpiar espacios y comentarios de toda la línea
+        raw_line = line.strip()
+        if not raw_line or raw_line.startswith('--'):
             continue
 
-        current.append(line)
+        # Eliminar comentario inline para análisis lógico
+        clean_line = re.sub(r"--.*$", "", raw_line).strip()
+        if not clean_line and not in_plsql:
+            continue
 
-        # Eliminar comentario inline (-- ...) para detectar correctamente el ';'
-        # Ej: "  VALUES (3, 'México');   -- comentario"  → termina en ';'
-        stripped_no_comment = re.sub(r"--[^\n]*$", "", stripped).strip()
+        # 2. Detectar inicio de bloque PL/SQL
+        up = clean_line.upper()
+        if up.startswith('CREATE OR REPLACE TRIGGER') or up.startswith('BEGIN') or up.startswith('DECLARE'):
+            in_plsql = True
 
-        # Si la línea (sin comentario) termina con ';', la sentencia está completa
-        if stripped_no_comment.endswith(';'):
-            stmt = '\n'.join(current).strip()
-            # Quitar comentarios inline de cada línea antes de ejecutar
-            stmt = re.sub(r"--[^\n]*", "", stmt).strip()
-            # Quitar el ';' final (Oracle cursor.execute no lo necesita)
-            if stmt.endswith(';'):
-                stmt = stmt[:-1].strip()
-            if stmt:
-                statements.append(stmt)
-            current = []
+        # 3. Detectar fin de bloque PL/SQL (el '/' solo en una línea)
+        if clean_line == '/' and in_plsql:
+            if current_stmt:
+                statements.append("\n".join(current_stmt))
+                current_stmt = []
+            in_plsql = False
+            continue
 
-    # Si queda algo sin ';' al final (no debería), lo incluimos igual
-    if current:
-        stmt = '\n'.join(current).strip()
-        if stmt:
-            statements.append(stmt)
+        # 4. Manejar sentencias estándar (;)
+        if not in_plsql and clean_line.endswith(';'):
+            current_stmt.append(line.replace(';', '')) # Oracle cursor no quiere el ;
+            statements.append("\n".join(current_stmt))
+            current_stmt = []
+        else:
+            current_stmt.append(line)
+
+    # Si quedó algo pendiente
+    if current_stmt:
+        stmt = "\n".join(current_stmt).strip()
+        if stmt: statements.append(stmt)
 
     return statements
 
