@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from database.db import get_connection
-from ui.ui_main import MainWindow
+from ui.dashboard import Dashboard
+from controllers.login_controller import LoginController
 
 # =============================================================================
 # Ventana de Login — punto de entrada de la aplicación
@@ -44,52 +44,23 @@ class LoginWindow:
                         bd=0, pady=12, cursor="hand2",
                         command=self.login)
         btn.pack(fill=tk.X, padx=40, pady=18)
+        
+        self.controller = LoginController(self)
 
     # ─── Lógica ────────────────────────────────────────────────
     def login(self):
-        usuario  = self.ent_usuario.get().strip()
-        password = self.ent_pass.get()
-
-        if not usuario or not password:
-            messagebox.showwarning("Campos vacíos", "Ingrese usuario y contraseña.")
-            return
-
-        conn = get_connection()
-        if not conn:
-            return
-
-        try:
-            cur = conn.cursor()
-            cur.execute("""SELECT codigo_usuario, tipo_usuario FROM Usuario
-                           WHERE nombreUsuario = :1 AND contrasena = :2""",
-                        (usuario, password))
-            row = cur.fetchone()
-
-            if not row:
-                messagebox.showerror("Acceso denegado", "Usuario o contraseña incorrectos.")
-                return
-
-            cod_usuario, tipo_usuario = row
-
-            # Registrar entrada en Bitácora
-            cur.execute("""INSERT INTO Bitacora (codigo_usuario, fechaHoraEntrada)
-                           VALUES (:1, CURRENT_TIMESTAMP)""", (cod_usuario,))
-            conn.commit()
-
-            # Abrir ventana principal
-            self.root.withdraw()
-            win = tk.Toplevel(self.root)
-            app = MainWindow(win, cod_usuario, tipo_usuario, self.root)
-
-            # Cuando el usuario cierre el MainWindow vía su botón,
-            # sys.exit() ya se encarga; pero si usa la X del SO:
-            win.protocol("WM_DELETE_WINDOW", app.cerrar_sesion)
-
-        except Exception as e:
-            messagebox.showerror("Error", f"Error en el sistema:\n{e}")
-        finally:
-            conn.close()
-
+        user = self.ent_usuario.get().strip()
+        pw   = self.ent_pass.get().strip()
+        
+        success, result = self.controller.intentar_login(user, pw)
+        
+        if success:
+            user_id, user_type = result
+            messagebox.showinfo("Acceso", f"Bienvenido, {user_type}")
+            self.root.destroy() # Destruir login para que Dashboard sea la principal
+            Dashboard(user_id, user_type)
+        else:
+            messagebox.showwarning("Acceso denegado", result)
 
 if __name__ == "__main__":
     root = tk.Tk()
