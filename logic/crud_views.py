@@ -200,7 +200,21 @@ class AddWindow:
             col_idx = [c["name"] for c in self.columns_info].index(col_name)
             current_val = self.edit_data[col_idx]
 
-        if key in ENUM_MAP:
+        is_pk = col.get("is_pk", False)
+        # No automatizamos PKs en tablas de relación o especialización
+        is_auto = is_pk and self.table_name not in ("DETALLES_PARTIDO_SELECCION", "JUGADOR", "DIRECTOR_TECNICO")
+
+        if is_auto and not self.edit_mode:
+            w = ttk.Entry(row)
+            w.insert(0, "(AUTO)")
+            w.config(state="disabled")
+            widget = w
+        elif is_pk and self.edit_mode:
+            w = ttk.Entry(row)
+            if current_val and current_val != "—": w.insert(0, current_val)
+            w.config(state="disabled")
+            widget = w
+        elif key in ENUM_MAP:
             vals = ENUM_MAP[key]
             w = ttk.Combobox(row, values=vals, state="readonly")
             if self.edit_mode and current_val in vals: w.set(current_val)
@@ -235,12 +249,19 @@ class AddWindow:
             raw = self.entries.get(col["name"])
             val = raw.get().strip() if hasattr(raw, "get") else ""
             
-            if col["type"] == "NUMBER" and val:
-                try: float(val)
-                except: messagebox.showwarning("Error", f"{col['name']} debe ser numérico"); return
-            
+            if val == "(AUTO)": val = ""
+
+            # 1. Si es un FK (Combo), extraer solo el código antes de validar numéricamente
             if col["name"].upper() in FK_COMBO_QUERY and " - " in val:
                 val = val.split(" - ")[0]
+
+            # 2. Validar si es numérico (ahora val ya es solo el código)
+            if col["type"] == "NUMBER" and val:
+                try: 
+                    float(val)
+                except: 
+                    messagebox.showwarning("Error", f"El campo '{col['name']}' debe ser un valor numérico válido.")
+                    return
                 
             if col["type"] == "BLOB" and val and os.path.exists(val):
                 with open(val, "rb") as f: val = f.read()
