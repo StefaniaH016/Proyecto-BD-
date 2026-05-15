@@ -1,4 +1,5 @@
 from database import db
+import oracledb
 
 class BaseDAO:
     def __init__(self, table_name=None):
@@ -24,6 +25,11 @@ class BaseDAO:
             pk_names = {r[0] for r in res_pks[0]}
             for c in cols:
                 if c["name"] in pk_names: c["is_pk"] = True
+
+        # 3. Inyectar NOMBRE virtual para especializaciones de Persona
+        if target_table in ("JUGADOR", "DIRECTOR_TECNICO"):
+            cols.insert(0, {"name": "NOMBRE", "type": "VARCHAR2", "length": 100, "nullable": "N", "is_pk": False})
+
         return cols
 
     def get_pk_cols(self, table_name=None):
@@ -37,7 +43,26 @@ class BaseDAO:
 
     def get_all(self, table_name=None):
         target_table = (table_name or self.table_name).upper()
+        if target_table in ("JUGADOR", "DIRECTOR_TECNICO"):
+            sql = f"""SELECT p.nombre, t.* FROM {target_table} t 
+                      JOIN Persona p ON t.codigo_persona = p.codigo_persona"""
+            return db.run_query(sql)
         return db.run_query(f"SELECT * FROM {target_table}")
+
+    def insert_persona(self, nombre):
+        """Inserta en Persona y retorna el codigo_persona generado."""
+        with db.db_session() as conn:
+            cur = conn.cursor()
+            id_var = cur.var(oracledb.NUMBER)
+            sql = "INSERT INTO Persona (nombre) VALUES (:1) RETURNING codigo_persona INTO :2"
+            cur.execute(sql, (nombre, id_var))
+            conn.commit()
+            return int(id_var.getvalue()[0])
+
+    def update_persona(self, codigo_persona, nombre):
+        """Actualiza el nombre en la tabla Persona."""
+        sql = "UPDATE Persona SET nombre = :1 WHERE codigo_persona = :2"
+        return db.run_query(sql, (nombre, codigo_persona), commit=True)
 
     def insert(self, table_name, columns_info, vals):
         target_table = table_name.upper()

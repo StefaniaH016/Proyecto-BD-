@@ -206,8 +206,8 @@ class AddWindow:
             current_val = self.edit_data[col_idx]
 
         is_pk = col.get("is_pk", False)
-        # No automatizamos PKs en tablas de relación o especialización
-        is_auto = is_pk and self.table_name not in ("DETALLES_PARTIDO_SELECCION", "JUGADOR", "DIRECTOR_TECNICO")
+        # No automatizamos PKs en tablas de relación (donde no son IDENTITY)
+        is_auto = is_pk and self.table_name not in ("DETALLES_PARTIDO_SELECCION")
 
         if is_auto and not self.edit_mode:
             w = ttk.Entry(row)
