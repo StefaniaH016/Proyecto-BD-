@@ -1,4 +1,4 @@
-oracledb
+oracledb>=4.0.0
 pandas
 fpdf2
 pymupdf

@@ -206,6 +206,10 @@ class AddWindow:
             current_val = self.edit_data[col_idx]
 
         is_pk = col.get("is_pk", False)
+        # Robustez: si el nombre es CODIGO_TABLA, suele ser la PK (por si falla la detección de constraints)
+        if not is_pk and key == f"CODIGO_{self.table_name}":
+            is_pk = True
+
         # No automatizamos PKs en tablas de relación (donde no son IDENTITY)
         is_auto = is_pk and self.table_name not in ("DETALLES_PARTIDO_SELECCION")
 
@@ -225,7 +229,7 @@ class AddWindow:
             if self.edit_mode and current_val in vals: w.set(current_val)
             else: w.current(0)
             widget = w
-        elif key in FK_COMBO_QUERY:
+        elif key in FK_COMBO_QUERY and not is_pk:
             data = self.controller.fetch_combos(FK_COMBO_QUERY[key])
             w = ttk.Combobox(row, values=data, state="readonly")
             if self.edit_mode and current_val:
