@@ -54,6 +54,7 @@ class Dashboard:
             tk.Label(scrollable_frame, text="🛡️ Herramientas de Administrador", font=("Segoe UI", 12, "bold"), bg="#e9ecef", fg="#212529").pack(pady=5)
             self.create_button(scrollable_frame, "👤 Gestionar Usuarios", "USUARIO", "#198754")
             self.create_button(scrollable_frame, "🏙️ Gestionar Ciudades", "CIUDAD", "#198754")
+            self.create_button(scrollable_frame, "🌎 Gestionar Países", "PAIS", "#198754")
             self.create_button(scrollable_frame, "🗺️ Gestionar Confederaciones", "CONFEDERACION", "#198754")
             self.create_button(scrollable_frame, "🏟️ Gestionar Estadios", "ESTADIO", "#198754")
             self.create_button(scrollable_frame, "⚽ Gestionar Posiciones", "POSICION", "#198754")
