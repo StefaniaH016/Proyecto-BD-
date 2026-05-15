@@ -35,7 +35,8 @@ class GenericCRUD:
         self.root = root
         self.table_name = table_name.upper()
         self.read_only = read_only
-        self.root.title(f"{'Vista' if read_only else 'Gestión'} — {self.table_name}")
+        is_bitacora = (self.table_name == "BITACORA")
+        self.root.title(f"{'Vista' if read_only and not is_bitacora else 'Gestión'} — {self.table_name}")
         self.root.geometry("900x520")
         self.root.configure(bg="#f0f4f8")
 
@@ -53,7 +54,7 @@ class GenericCRUD:
         # Cabecera
         hdr = tk.Frame(root, bg="#4a6fa5")
         hdr.pack(fill=tk.X)
-        tk.Label(hdr, text=f"{'📂' if read_only else '🗂️'}  {self.table_name}",
+        tk.Label(hdr, text=f"{'📂' if read_only and not is_bitacora else '🗂️'}  {self.table_name}",
                  font=("Segoe UI", 13, "bold"), fg="white", bg="#4a6fa5", pady=10).pack(side=tk.LEFT, padx=15)
 
         # Tabla
@@ -75,7 +76,11 @@ class GenericCRUD:
         btn_frame.pack(fill=tk.X, padx=15, pady=10)
 
         ttk.Button(btn_frame, text="🔄  Refrescar", command=self.load_data).pack(side=tk.LEFT, padx=4)
-        if not read_only:
+        
+        if is_bitacora:
+            # Solo borrar en bitácora
+            ttk.Button(btn_frame, text="❌  Eliminar",  command=self.delete_record).pack(side=tk.LEFT, padx=4)
+        elif not read_only:
             ttk.Button(btn_frame, text="➕  Añadir",    command=self.add_record).pack(side=tk.LEFT, padx=4)
             ttk.Button(btn_frame, text="✏️  Modificar", command=self.edit_record).pack(side=tk.LEFT, padx=4)
             ttk.Button(btn_frame, text="❌  Eliminar",  command=self.delete_record).pack(side=tk.LEFT, padx=4)

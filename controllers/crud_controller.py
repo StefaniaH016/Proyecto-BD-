@@ -21,6 +21,9 @@ class CRUDController:
 
     def validate_and_save(self, table_name, columns_info, vals, edit_mode=False, original_pk_vals=None):
         # Aquí irían validaciones de negocio adicionales si fueran necesarias
+        if table_name.upper() == "BITACORA":
+            return False, "No se permite la creación o modificación manual de registros en la Bitácora."
+            
         try:
             if not edit_mode:
                 self.dao.insert(table_name, columns_info, vals)
