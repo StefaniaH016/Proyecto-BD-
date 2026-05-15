@@ -3,6 +3,9 @@ from tkinter import ttk, messagebox
 from controllers.report_controller import ReportController
 import pandas as pd
 from logic.pdf_generator import generar_pdf_reporte
+# pyrefly: ignore [missing-import]
+from tkcalendar import DateEntry
+from datetime import datetime
 
 # =================================
 # Módulo de Consultas y Reportes
@@ -113,8 +116,13 @@ class ReportsWindow:
         frame = self._scrollable(parent)
 
         r1_ctrl, r1_tree = self._section(frame, "R1 · Bitácora por fecha")
-        ent_fecha = ttk.Entry(r1_ctrl, width=14); ent_fecha.insert(0, "01/06/2026"); ent_fecha.pack(side=tk.LEFT, padx=6)
-        self._exec_btn(r1_ctrl, r1_tree, "bitacora_by_date", lambda: (ent_fecha.get(),), "Bitácora")
+        # Selector de fecha con calendario y restricción de fechas futuras
+        cal_fecha = DateEntry(r1_ctrl, width=14, background='#6f42c1', foreground='white', 
+                              borderwidth=2, date_pattern='dd/mm/yyyy', 
+                              maxdate=datetime.now().date())
+        cal_fecha.pack(side=tk.LEFT, padx=6)
+        
+        self._exec_btn(r1_ctrl, r1_tree, "bitacora_by_date", lambda: (cal_fecha.get(),), "Bitácora")
 
         r2_ctrl, r2_tree = self._section(frame, "R2 · Jugadores por peso/estatura")
         tk.Label(r2_ctrl, text="Filtros:", bg="#ffffff").pack(side=tk.LEFT)
