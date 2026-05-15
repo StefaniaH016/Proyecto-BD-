@@ -47,7 +47,7 @@ class Dashboard:
             self.create_button(scrollable_frame, "🏟️ Gestionar Partidos", "PARTIDO", "#0d6efd")
             self.create_button(scrollable_frame, "🏃‍♂️ Gestionar Jugadores", "JUGADOR", "#0d6efd")
             self.create_button(scrollable_frame, "👔 Gestionar D. Técnicos", "DIRECTOR_TECNICO", "#0d6efd")
-            self.create_button(scrollable_frame, "📈 Gestionar Participaciones", "PARTICIPACION", "#0d6efd")
+            self.create_button(scrollable_frame, "📈 Gestionar Detalles Partido", "DETALLES_PARTIDO_SELECCION", "#0d6efd")
         
         if self.user_type == 'ADMINISTRADOR':
             ttk.Separator(scrollable_frame, orient='horizontal').pack(fill='x', pady=15, padx=40)

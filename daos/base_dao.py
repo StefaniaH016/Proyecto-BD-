@@ -126,3 +126,15 @@ class BaseDAO:
             rows, _ = res
             return [f"{r[0]} - {r[1]}" for r in rows]
         return []
+
+    def insert_match_details(self, partido_id, local_id, visita_id, goles_local, goles_visita):
+        """Inserta los dos registros cruzados para Detalles_Partido_Seleccion en una transacción."""
+        with db.db_session() as conn:
+            cur = conn.cursor()
+            sql = "INSERT INTO Detalles_Partido_Seleccion (codigo_seleccion, codigo_partido, goles_local, goles_visita) VALUES (:1, :2, :3, :4)"
+            # Registro de la selección local (mis goles: goles_local, sus goles: goles_visita)
+            cur.execute(sql, (local_id, partido_id, goles_local, goles_visita))
+            # Registro de la selección visita (mis goles: goles_visita, sus goles: goles_local)
+            cur.execute(sql, (visita_id, partido_id, goles_visita, goles_local))
+            conn.commit()
+            return True

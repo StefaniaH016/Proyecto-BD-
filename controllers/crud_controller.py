@@ -59,3 +59,11 @@ class CRUDController:
 
     def fetch_combos(self, query):
         return self.dao.fetch_combo_data(query)
+
+    def save_match_details(self, partido_id, local_id, visita_id, goles_local, goles_visita):
+        try:
+            self.dao.insert_match_details(partido_id, local_id, visita_id, goles_local, goles_visita)
+            return True, "Registro doble guardado exitosamente."
+        except Exception as e:
+            # Capturamos si hay duplicados (ORA-00001) u otro error
+            return False, f"Error al guardar detalles de partido: {e}"

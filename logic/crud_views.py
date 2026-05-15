@@ -115,7 +115,10 @@ class GenericCRUD:
         self.tree.tag_configure("odd",  background="#f5f8fd")
 
     def add_record(self):
-        AddWindow(self.root, self.table_name, self.columns_info, self.load_data, controller=self.controller)
+        if self.table_name == "DETALLES_PARTIDO_SELECCION":
+            AddMatchDetailsWindow(self.root, self.load_data, controller=self.controller)
+        else:
+            AddWindow(self.root, self.table_name, self.columns_info, self.load_data, controller=self.controller)
 
     def edit_record(self):
         sel = self.tree.focus()
@@ -229,7 +232,7 @@ class AddWindow:
             if self.edit_mode and current_val in vals: w.set(current_val)
             else: w.current(0)
             widget = w
-        elif key in FK_COMBO_QUERY and not is_pk:
+        elif key in FK_COMBO_QUERY:
             data = self.controller.fetch_combos(FK_COMBO_QUERY[key])
             w = ttk.Combobox(row, values=data, state="readonly")
             if self.edit_mode and current_val:
@@ -289,6 +292,96 @@ class AddWindow:
         success, msg = self.controller.validate_and_save(self.table_name, self.columns_info, vals, self.edit_mode, original_pk_vals)
         if success:
             messagebox.showinfo("Exito", msg)
+            self.on_success()
+            self.top.destroy()
+        else:
+            messagebox.showerror("Error", msg)
+
+# =============================================================================
+# Ventana especial para añadir Detalles_Partido_Seleccion (Registro Doble)
+# =============================================================================
+class AddMatchDetailsWindow:
+    def __init__(self, parent, on_success, controller):
+        self.top = tk.Toplevel(parent)
+        self.top.title("✨ Añadir Resultado del Partido")
+        self.top.geometry("520x450")
+        self.top.configure(bg="#ffffff")
+        self.top.grab_set()
+
+        self.on_success = on_success
+        self.controller = controller
+
+        tk.Label(self.top, text="Registro Completo de Partido",
+                 font=("Segoe UI", 13, "bold"), bg="#ffffff", fg="#0d6efd").pack(pady=12)
+
+        form = tk.Frame(self.top, bg="#ffffff")
+        form.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+
+        # Combo de Partido
+        tk.Label(form, text="Partido (*)", font=("Segoe UI", 9, "bold"), bg="#ffffff").grid(row=0, column=0, sticky="w", pady=10)
+        partidos_data = self.controller.fetch_combos(FK_COMBO_QUERY["CODIGO_PARTIDO"])
+        self.cb_partido = ttk.Combobox(form, values=partidos_data, state="readonly", width=40)
+        if partidos_data: self.cb_partido.current(0)
+        self.cb_partido.grid(row=0, column=1, columnspan=2, sticky="w", pady=10)
+
+        selecciones_data = self.controller.fetch_combos(FK_COMBO_QUERY["CODIGO_SELECCION"])
+
+        # Equipo Local
+        tk.Label(form, text="Equipo Local (*)", font=("Segoe UI", 9, "bold"), bg="#ffffff").grid(row=1, column=0, sticky="w", pady=5)
+        self.cb_local = ttk.Combobox(form, values=selecciones_data, state="readonly", width=25)
+        if selecciones_data: self.cb_local.current(0)
+        self.cb_local.grid(row=1, column=1, sticky="w", pady=5, padx=(0, 10))
+
+        tk.Label(form, text="Goles:", font=("Segoe UI", 9, "bold"), bg="#ffffff").grid(row=1, column=2, sticky="e", pady=5)
+        self.txt_goles_local = ttk.Entry(form, width=5)
+        self.txt_goles_local.insert(0, "0")
+        self.txt_goles_local.grid(row=1, column=3, sticky="w", pady=5)
+
+        # Equipo Visita
+        tk.Label(form, text="Equipo Visita (*)", font=("Segoe UI", 9, "bold"), bg="#ffffff").grid(row=2, column=0, sticky="w", pady=5)
+        self.cb_visita = ttk.Combobox(form, values=selecciones_data, state="readonly", width=25)
+        if len(selecciones_data) > 1: self.cb_visita.current(1)
+        elif selecciones_data: self.cb_visita.current(0)
+        self.cb_visita.grid(row=2, column=1, sticky="w", pady=5, padx=(0, 10))
+
+        tk.Label(form, text="Goles:", font=("Segoe UI", 9, "bold"), bg="#ffffff").grid(row=2, column=2, sticky="e", pady=5)
+        self.txt_goles_visita = ttk.Entry(form, width=5)
+        self.txt_goles_visita.insert(0, "0")
+        self.txt_goles_visita.grid(row=2, column=3, sticky="w", pady=5)
+
+        btn_frame = tk.Frame(self.top, bg="#ffffff")
+        btn_frame.pack(pady=20)
+        ttk.Button(btn_frame, text="💾 Guardar Partido", command=self.save).pack(side=tk.LEFT, padx=8)
+        ttk.Button(btn_frame, text="Cancelar", command=self.top.destroy).pack(side=tk.LEFT, padx=8)
+
+    def save(self):
+        partido_str = self.cb_partido.get()
+        local_str = self.cb_local.get()
+        visita_str = self.cb_visita.get()
+        goles_local_str = self.txt_goles_local.get().strip()
+        goles_visita_str = self.txt_goles_visita.get().strip()
+
+        if not partido_str or not local_str or not visita_str:
+            messagebox.showwarning("Faltan Datos", "Debe seleccionar un partido y ambas selecciones.")
+            return
+
+        if local_str == visita_str:
+            messagebox.showwarning("Error", "La selección local y visita no pueden ser la misma.")
+            return
+
+        try:
+            partido_id = int(partido_str.split(" - ")[0])
+            local_id = int(local_str.split(" - ")[0])
+            visita_id = int(visita_str.split(" - ")[0])
+            goles_local = int(goles_local_str)
+            goles_visita = int(goles_visita_str)
+        except ValueError:
+            messagebox.showwarning("Error numérico", "Asegúrese de ingresar números enteros válidos para los goles.")
+            return
+
+        success, msg = self.controller.save_match_details(partido_id, local_id, visita_id, goles_local, goles_visita)
+        if success:
+            messagebox.showinfo("Éxito", msg)
             self.on_success()
             self.top.destroy()
         else:
