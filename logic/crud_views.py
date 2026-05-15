@@ -211,7 +211,7 @@ class AddWindow:
             is_pk = True
 
         # No automatizamos PKs en tablas de relación (donde no son IDENTITY)
-        is_auto = is_pk and self.table_name not in ("DETALLES_PARTIDO_SELECCION")
+        is_auto = is_pk and self.table_name not in ["DETALLES_PARTIDO_SELECCION"]
 
         if is_auto and not self.edit_mode:
             w = ttk.Entry(row)
