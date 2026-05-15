@@ -58,6 +58,7 @@ class Dashboard:
             self.create_button(scrollable_frame, "🗺️ Gestionar Confederaciones", "CONFEDERACION", "#198754")
             self.create_button(scrollable_frame, "🏟️ Gestionar Estadios", "ESTADIO", "#198754")
             self.create_button(scrollable_frame, "⚽ Gestionar Posiciones", "POSICION", "#198754")
+            self.create_button(scrollable_frame, "📊 Gestionar Grupos", "GRUPO", "#198754")
             self.create_button(scrollable_frame, "🕒 Ver Bitácora de Accesos", "BITACORA", "#ffc107", text_color="black")
 
         ttk.Separator(scrollable_frame, orient='horizontal').pack(fill='x', pady=15, padx=40)
