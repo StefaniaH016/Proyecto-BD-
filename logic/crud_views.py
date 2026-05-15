@@ -263,12 +263,16 @@ class AddWindow:
             # 2. Validar si es numérico (ahora val ya es solo el código)
             if col["type"] == "NUMBER" and val:
                 try: 
-                    float(val)
-                except: 
+                    # Reemplazamos coma por punto para aceptar ambos formatos
+                    val_str = str(val).replace(',', '.')
+                    val_num = float(val_str)
+                    # Lo guardamos como int o float nativo de Python
+                    val = int(val_num) if val_num.is_integer() else val_num
+                except ValueError: 
                     messagebox.showwarning("Error", f"El campo '{col['name']}' debe ser un valor numérico válido.")
                     return
                 
-            if col["type"] == "BLOB" and val and os.path.exists(val):
+            if col["type"] == "BLOB" and val and isinstance(val, str) and os.path.exists(val):
                 with open(val, "rb") as f: val = f.read()
             
             vals.append(val if val != "" else None)

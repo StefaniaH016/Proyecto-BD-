@@ -53,11 +53,13 @@ class BaseDAO:
         """Inserta en Persona y retorna el codigo_persona generado."""
         with db.db_session() as conn:
             cur = conn.cursor()
-            id_var = cur.var(oracledb.NUMBER)
-            sql = "INSERT INTO Persona (nombre) VALUES (:1) RETURNING codigo_persona INTO :2"
-            cur.execute(sql, (nombre, id_var))
+            cur.execute("SELECT NVL(MAX(codigo_persona), 0) + 1 FROM Persona")
+            next_id = int(cur.fetchone()[0])
+            
+            sql = "INSERT INTO Persona (codigo_persona, nombre) VALUES (:1, :2)"
+            cur.execute(sql, (next_id, nombre))
             conn.commit()
-            return int(id_var.getvalue()[0])
+            return next_id
 
     def update_persona(self, codigo_persona, nombre):
         """Actualiza el nombre en la tabla Persona."""
@@ -66,6 +68,18 @@ class BaseDAO:
 
     def insert(self, table_name, columns_info, vals):
         target_table = table_name.upper()
+        
+        # Generar ID secuencial si la PK está vacía o nula
+        pk_cols = [c for c in columns_info if c.get("is_pk")]
+        if len(pk_cols) == 1:
+            pk_name = pk_cols[0]["name"]
+            pk_idx = next(i for i, c in enumerate(columns_info) if c["name"] == pk_name)
+            if not vals[pk_idx] or str(vals[pk_idx]).strip() == "":
+                max_id_sql = f"SELECT NVL(MAX({pk_name}), 0) + 1 FROM {target_table}"
+                res_max = db.run_query(max_id_sql)
+                next_id = res_max[0][0][0] if res_max and res_max[0] else 1
+                vals[pk_idx] = next_id
+
         ph = [f"TO_DATE(:{i+1}, 'DD/MM/YYYY')" if c["type"] in ("DATE", "TIMESTAMP(6)") and vals[i] is not None else f":{i+1}" 
               for i, c in enumerate(columns_info)]
         cols_str = ", ".join(c["name"] for c in columns_info)
