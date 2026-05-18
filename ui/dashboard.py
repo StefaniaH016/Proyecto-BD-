@@ -90,7 +90,11 @@ class Dashboard:
             if not success:
                 print(f"[ERROR] No se pudo registrar salida: {msg}")
             self.root.destroy()
-            # Reiniciar login
-            import os
-            import sys
-            os.execv(sys.executable, ['python'] + sys.argv)
+            
+            # Volver al login sin reiniciar el proceso
+            import tkinter as tk
+            from ui.ui_login import LoginWindow
+            
+            login_root = tk.Tk()
+            LoginWindow(login_root)
+            login_root.mainloop()
